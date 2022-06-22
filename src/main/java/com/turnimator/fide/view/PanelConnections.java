@@ -25,7 +25,8 @@ public class PanelConnections extends JPanel {
     
     private JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
     private PanelSerialConnection panelSerialConnection;
-
+    private PanelTelnetConnection panelTelnetConnection;
+    
     private void initComponents() {
         panelSerialConnection = new PanelSerialConnection();
         panelSerialConnection.addRescanEventHandler(new RescanEvent() {
@@ -37,7 +38,7 @@ public class PanelConnections extends JPanel {
             }
         });
         tabbedPane.add("Serial", panelSerialConnection);
-        tabbedPane.add("Telnet", new JPanel());
+        tabbedPane.add("Telnet", new PanelTelnetConnection());
         add(tabbedPane);
     }
 
