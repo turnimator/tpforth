@@ -7,9 +7,9 @@ package com.turnimator.fide.view;
 import com.turnimator.fide.events.RescanEvent;
 import com.turnimator.fide.events.SerialConnectionEvent;
 import com.turnimator.fide.events.SerialDisconnectEvent;
+import com.turnimator.fide.events.TelnetConnectionEvent;
+import com.turnimator.fide.events.TelnetDisconnectEvent;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
@@ -19,9 +19,12 @@ import javax.swing.JTabbedPane;
  */
 public class PanelConnections extends JPanel {
 
-    private ArrayList<SerialConnectionEvent> serialConnectHandlerList = new ArrayList<>();
-    private ArrayList<SerialDisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
+    private final ArrayList<SerialConnectionEvent> serialConnectHandlerList = new ArrayList<>();
+    private final ArrayList<SerialDisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
     private ArrayList<RescanEvent> rescanHandlerList = new ArrayList<>();
+    
+      private final ArrayList<TelnetConnectionEvent> telnetConnectionHandlerList = new ArrayList<>();
+    private final ArrayList<TelnetDisconnectEvent> telnetDisconnectHandlerList = new ArrayList<>();
     
     private JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
     private PanelSerialConnection panelSerialConnection;
@@ -38,7 +41,26 @@ public class PanelConnections extends JPanel {
             }
         });
         tabbedPane.add("Serial", panelSerialConnection);
-        tabbedPane.add("Telnet", new PanelTelnetConnection());
+        
+       panelTelnetConnection = new PanelTelnetConnection();
+       panelTelnetConnection.addConnectionEventHandler(new TelnetConnectionEvent() {
+            @Override
+            public void connect(String connectionString, int port) {
+                for(TelnetConnectionEvent ev:telnetConnectionHandlerList){
+                    ev.connect(connectionString, port);
+                }
+            }
+       });
+       
+       panelTelnetConnection.addDisconnectEventHndler(new TelnetDisconnectEvent() {
+            @Override
+            public void disconnect(String source) {
+                for(TelnetDisconnectEvent ev:telnetDisconnectHandlerList){
+                    ev.disconnect(source);
+                }
+            }
+       });
+        tabbedPane.add("Telnet", panelTelnetConnection);
         add(tabbedPane);
     }
 
@@ -54,6 +76,14 @@ public class PanelConnections extends JPanel {
         panelSerialConnection.addPort(s);
     }
 
+    public void addTelnetConnectionHandler(TelnetConnectionEvent ev){
+        telnetConnectionHandlerList.add(ev);
+    }
+    
+    public void addTelnetDisconnectHandler(TelnetDisconnectEvent ev){
+        telnetDisconnectHandlerList.add(ev);
+    }
+    
     public void addSerialConnectionEventHandler(SerialConnectionEvent ev) {
         panelSerialConnection.addConnectionEventHandler(ev);
     }

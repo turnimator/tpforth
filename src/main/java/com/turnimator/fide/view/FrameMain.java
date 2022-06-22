@@ -11,6 +11,8 @@ import com.turnimator.fide.events.FileOpenEvent;
 import com.turnimator.fide.events.RescanEvent;
 import com.turnimator.fide.events.SerialConnectionEvent;
 import com.turnimator.fide.events.SerialDisconnectEvent;
+import com.turnimator.fide.events.TelnetConnectionEvent;
+import com.turnimator.fide.events.TelnetDisconnectEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
 import java.awt.BorderLayout;
@@ -48,6 +50,9 @@ String _connectionSource;
 
     private ArrayList<SerialConnectionEvent> serialConnectHandlerList = new ArrayList<>();
     private ArrayList<SerialDisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
+    private ArrayList<TelnetConnectionEvent> telnetConnectHandlerList = new ArrayList<>();
+    private ArrayList<TelnetDisconnectEvent> telnetDisconnectHandlerList = new ArrayList<>();
+    
     private final ArrayList<ConnectionDisplayEvent> connectionDisplayHandlerList = new ArrayList<>();
     private final ArrayList<TransmitEvent> transmitEventHandlerList = new ArrayList<>();
     private final ArrayList<ConnectionCloseEvent> connectionCloseHandlerList = new ArrayList<>();
@@ -101,6 +106,24 @@ String _connectionSource;
             public void rescan() {
                 for(RescanEvent ev:rescanHandlerList){
                     ev.rescan();
+                }
+            }
+        });
+        
+        panelConnections.addTelnetConnectionHandler(new TelnetConnectionEvent() {
+            @Override
+            public void connect(String connectionString, int port) {
+                for(TelnetConnectionEvent ev:telnetConnectHandlerList){
+                    ev.connect(connectionString, port);
+                }
+            }
+        });
+        
+        panelConnections.addTelnetDisconnectHandler(new TelnetDisconnectEvent() {
+            @Override
+            public void disconnect(String source) {
+                for(TelnetDisconnectEvent ev:telnetDisconnectHandlerList){
+                    ev.disconnect(source);
                 }
             }
         });
@@ -233,7 +256,7 @@ String _connectionSource;
         rescanHandlerList.add(ev);
     }
     
-    public void addConnectionCloseEventHandler(ConnectionCloseEvent ev){
+    public void addSerialConnectionCloseEventHandler(ConnectionCloseEvent ev){
         connectionCloseHandlerList.add(ev);
     }
     
@@ -253,6 +276,14 @@ String _connectionSource;
         panelConnections.addSerialDisconnectEventHandler(ev);
     }
 
+    public void addTelnetConnectionEventHandler(TelnetConnectionEvent ev){
+        telnetConnectHandlerList.add(ev);
+    }
+    
+    public void addTelnetDisconnectEventHandler(TelnetDisconnectEvent ev){
+        telnetDisconnectHandlerList.add(ev);
+    }
+    
     public void addTransmitEventHandler(TransmitEvent ev){
         transmitEventHandlerList.add(ev);
     }

@@ -5,7 +5,10 @@
 package com.turnimator.fide.view;
 
 import com.turnimator.fide.events.TelnetConnectionEvent;
+import com.turnimator.fide.events.TelnetDisconnectEvent;
 import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -15,7 +18,6 @@ import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.text.MaskFormatter;
 
 /**
@@ -24,7 +26,7 @@ import javax.swing.text.MaskFormatter;
  */
 public class PanelTelnetConnection extends Panel {
     private final ArrayList<TelnetConnectionEvent> connectionHandlerList = new ArrayList<>();
-    
+    private final ArrayList<TelnetDisconnectEvent> disconnectHandlerList = new ArrayList<>();
     JPanel buttonPanel = new JPanel();
     JPanel textPanel = new JPanel();
     
@@ -36,7 +38,7 @@ public class PanelTelnetConnection extends Panel {
   
     private JButton buttonConnect;
     private JButton buttonDisconnect;
-    private JButton buttonRescan;
+
     
     public PanelTelnetConnection(){
         initComponents();
@@ -60,7 +62,25 @@ public class PanelTelnetConnection extends Panel {
         
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
         buttonConnect = new JButton("Connect");
+        buttonConnect.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for(TelnetConnectionEvent ev:connectionHandlerList){
+                    String text = urlTextField.getText();
+                    int port = Integer.parseInt(portTextField.getText());
+                    ev.connect(text, port);
+                }
+            }
+        });
         buttonDisconnect = new JButton("Disconnect");
+        buttonDisconnect.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for(TelnetDisconnectEvent ev:disconnectHandlerList){
+                    ev.disconnect(urlTextField.getText());
+                }
+            }
+        });
         buttonPanel.add(buttonConnect);
         buttonPanel.add(buttonDisconnect);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -68,4 +88,12 @@ public class PanelTelnetConnection extends Panel {
         add(buttonPanel);
         
     } 
+    
+    public void addConnectionEventHandler(TelnetConnectionEvent ev){
+        connectionHandlerList.add(ev);
+    }
+    
+    public void addDisconnectEventHndler(TelnetDisconnectEvent ev){
+        disconnectHandlerList.add(ev);
+    }
 }

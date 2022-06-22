@@ -12,6 +12,7 @@ import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
 import com.turnimator.fide.events.RescanEvent;
 import com.turnimator.fide.events.SerialConnectionEvent;
+import com.turnimator.fide.events.TelnetConnectionEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
 import com.turnimator.fide.model.SerialCommunicator;
@@ -115,6 +116,13 @@ public class Controller {
                 rescanSerialPorts();
             }
         });
+        frameMain.addTelnetConnectionEventHandler(new TelnetConnectionEvent() {
+            @Override
+            public void connect(String connectionString, int port) {
+                /** TELNET COMMUNICATOR AND EDITOR ADDED TO THE TABBED PANE */
+                Logger.getAnonymousLogger().log(Level.INFO, "Telnet Connect requested");
+            }
+        });
 
         frameMain.addSerialConnectionEventHandler(new SerialConnectionEvent() {
 
@@ -143,7 +151,7 @@ public class Controller {
                 });
                 
                 frameMain.setEditorTab(ConnectionType.Serial, serialPort);
-                frameMain.addConnectionCloseEventHandler(new ConnectionCloseEvent() {
+                frameMain.addSerialConnectionCloseEventHandler(new ConnectionCloseEvent() {
                     @Override
                     public void close(ConnectionType ct, String source) {
                         frameMain.removeEditorTab(ct, source);
