@@ -30,7 +30,7 @@ public class PanelTelnetConnection extends Panel {
     JPanel buttonPanel = new JPanel();
     JPanel textPanel = new JPanel();
     
-    JFormattedTextField urlTextField;
+    JTextField urlTextField;
     MaskFormatter mask;
     
     JTextField portTextField ;
@@ -45,13 +45,9 @@ public class PanelTelnetConnection extends Panel {
     }
     
     private void initComponents(){
-        try {
-            mask = new MaskFormatter("###.###.###.###");
-        } catch (ParseException ex) {
-            Logger.getLogger(PanelTelnetConnection.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
-        urlTextField = new JFormattedTextField(mask);
+        urlTextField = new JTextField();
+        urlTextField.setText("192.168.4.1");
         
         portTextField = new JTextField();
         portTextField.setText("23");
@@ -67,6 +63,7 @@ public class PanelTelnetConnection extends Panel {
             public void actionPerformed(ActionEvent e) {
                 for(TelnetConnectionEvent ev:connectionHandlerList){
                     String text = urlTextField.getText();
+                    Logger.getAnonymousLogger().log(Level.INFO, "urlTextField:"+text);
                     int port = Integer.parseInt(portTextField.getText());
                     ev.connect(text, port);
                 }

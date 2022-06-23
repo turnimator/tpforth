@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
@@ -219,6 +220,10 @@ String _connectionSource;
             @Override
             public void stateChanged(ChangeEvent e) {
                 int selectedIndex = tabbedPane.getSelectedIndex();
+                if (selectedIndex < 0){
+                    JOptionPane.showMessageDialog(panelConnections, "Select an editor tab first");
+                    return;
+                }
                 _connectionSource = tabbedPane.getTitleAt(selectedIndex);
                 Logger.getAnonymousLogger().log(Level.INFO,"Tab source " + _connectionSource);
                 PanelEditor editor = (PanelEditor) tabbedPane.getComponentAt(selectedIndex);

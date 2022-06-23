@@ -16,6 +16,7 @@ import com.turnimator.fide.events.TelnetConnectionEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
 import com.turnimator.fide.model.SerialCommunicator;
+import com.turnimator.fide.model.TelnetCommunicator;
 import com.turnimator.fide.view.FrameMain;
 import java.awt.FileDialog;
 import static java.awt.FileDialog.LOAD;
@@ -45,6 +46,8 @@ public class Controller {
     HashMap<String, SerialCommunicator> serialCommunicatorMap; // For Transmitting and receiving to individual panels
     SerialCommunicator serialCommunicator = new SerialCommunicator(); // For managing Connect, Disconnect to add/remove communicators
 
+    HashMap<String, TelnetCommunicator> telnetCommunicatorMap = new HashMap<>();
+    
     public Controller() {
         serialCommunicatorMap = new HashMap<>();
         frameMain = new FrameMain();
@@ -120,7 +123,22 @@ public class Controller {
             @Override
             public void connect(String connectionString, int port) {
                 /** TELNET COMMUNICATOR AND EDITOR ADDED TO THE TABBED PANE */
-                Logger.getAnonymousLogger().log(Level.INFO, "Telnet Connect requested");
+                Logger.getAnonymousLogger().log(Level.INFO, "Telnet Connect requested:" + connectionString);
+                TelnetCommunicator tc = telnetCommunicatorMap.get(connectionString);
+                if (tc==null){
+                    tc = new TelnetCommunicator();
+                    telnetCommunicatorMap.put(connectionString, tc);
+                }
+                if ( ! tc.connect(connectionString+":"+port)){
+                     JOptionPane.showMessageDialog(frameMain, tc.getErrorText());
+                }
+                tc.addReceiveEventHandler(new ReceiveEvent() {
+                    @Override
+                    public void receive(ConnectionType ct, String source, String text) {
+                        frameMain.appendResponseText(ct, source, text);
+                    }
+                });
+                
             }
         });
 
@@ -131,7 +149,7 @@ public class Controller {
                 SerialCommunicator sc = new SerialCommunicator();
 
                 if (!sc.connect(serialPort)) {
-                    JOptionPane.showMessageDialog(frameMain, "Connection failed!");
+                    JOptionPane.showMessageDialog(frameMain, sc.getErrorText());
                     return;
                 }
                 sc.setBitrate(bitRate);
@@ -178,14 +196,21 @@ public class Controller {
                 switch (ct) {
                     case Serial:
                         Logger.getAnonymousLogger().log(Level.INFO, "Controller  sending to " + source);
-                        SerialCommunicator get = serialCommunicatorMap.get(source);
-                        if (get != null){
-                            if ( ! get.send(text)){
-                                Logger.getAnonymousLogger().log(Level.WARNING, get.getErrorText());
+                        SerialCommunicator serialCommunicator = serialCommunicatorMap.get(source);
+                        if (serialCommunicator != null){
+                            if ( ! serialCommunicator.send(text)){
+                                Logger.getAnonymousLogger().log(Level.WARNING, serialCommunicator.getErrorText());
                             }
                         }
                         break;
+
                     case Telnet:
+                        TelnetCommunicator tc = telnetCommunicatorMap.get(source);
+                        if (tc != null){
+                            if ( ! tc.send(text)){
+                                Logger.getAnonymousLogger().log(Level.WARNING, tc.getErrorText());
+                            }
+                        }
                         break;
                     case Undefined:
                     default:
