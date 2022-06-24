@@ -72,8 +72,8 @@ String _connectionSource;
     private final PanelConnections panelConnections = new PanelConnections();
     private final JTabbedPane tabbedPane = new JTabbedPane();
     private final JPanel statusPanel = new JPanel();
-    private JLabel statusLabel = new JLabel();
-    private JProgressBar statusProgressBar = new JProgressBar();
+    private final JLabel statusLabel = new JLabel();
+    private final JProgressBar statusProgressBar = new JProgressBar();
 
     /**
      * There is one list of event handlers for FrameMain +
@@ -136,7 +136,9 @@ String _connectionSource;
         JMenuItem itemNew = menuFile.add(new AbstractAction("New") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+                for(ConnectionDisplayEvent ev:connectionDisplayHandlerList){
+                    ev.displayConnections(true);
+                }
             }
         });
         JMenuItem itemOpen = menuFile.add(new AbstractAction("Open") {
@@ -157,6 +159,26 @@ String _connectionSource;
                 System.exit(0);
             }
         });
+        
+        menuEdit.add(new JMenuItem(new AbstractAction("Copy") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            }
+        }));
+        menuEdit.add(new JMenuItem(new AbstractAction("Cut") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            }
+        }));
+        menuEdit.add(new JMenuItem(new AbstractAction("Paste") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            }
+        }));
+        
         menuBar.add(menuEdit);
         JMenu menuConnection = new JMenu("Connection");
         menuBar.add(menuConnection);
@@ -221,7 +243,6 @@ String _connectionSource;
             public void stateChanged(ChangeEvent e) {
                 int selectedIndex = tabbedPane.getSelectedIndex();
                 if (selectedIndex < 0){
-                    JOptionPane.showMessageDialog(panelConnections, "Select an editor tab first");
                     return;
                 }
                 _connectionSource = tabbedPane.getTitleAt(selectedIndex);
@@ -274,11 +295,11 @@ String _connectionSource;
     }
 
     public void addSerialConnectionEventHandler(SerialConnectionEvent ev) {
-        panelConnections.addSerialConnectionEventHandler(ev);
+        serialConnectHandlerList.add(ev);
     }
 
     public void addSerialDisconnectEventHandler(SerialDisconnectEvent ev) {
-        panelConnections.addSerialDisconnectEventHandler(ev);
+        serialDisconnectHandlerList.add(ev);
     }
 
     public void addTelnetConnectionEventHandler(TelnetConnectionEvent ev){
@@ -297,6 +318,7 @@ String _connectionSource;
         PanelEditor editorPanel = editorPanelMap.get(source);
         if (editorPanel == null){
             editorPanel = new PanelEditor(ct, source);
+            editorPanel.setMinimumSize(new Dimension(300, 400));
             editorPanelMap.put(source, editorPanel);
             tabbedPane.addTab(source, editorPanel);
             editorPanel.addTransmitEventHandler(new TransmitEvent() {
@@ -326,6 +348,9 @@ String _connectionSource;
         PanelEditor get = editorPanelMap.get(source);
         if (get != null){
             tabbedPane.remove(get);
+        } else {
+            Logger.getAnonymousLogger().log(Level.SEVERE, "EditorPanel does not contain tab:"+source);
+           
         }
         editorPanelMap.remove(source);
         _connectionSource = "No connection";
@@ -367,5 +392,9 @@ String _connectionSource;
         statusPanel.add(statusLabel);
         statusPanel.add(statusProgressBar);
         panel.add(statusPanel);
+    }
+    
+    public void setStatus(String status){
+        statusLabel.setText(status);
     }
 }

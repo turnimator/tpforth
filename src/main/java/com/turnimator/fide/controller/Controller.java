@@ -12,6 +12,7 @@ import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
 import com.turnimator.fide.events.RescanEvent;
 import com.turnimator.fide.events.SerialConnectionEvent;
+import com.turnimator.fide.events.SerialDisconnectEvent;
 import com.turnimator.fide.events.TelnetConnectionEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
@@ -27,6 +28,7 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -37,7 +39,7 @@ import javax.swing.JOptionPane;
  * @author atle
  */
 public class Controller {
-
+    
     ConnectionType _connectionType = ConnectionType.Undefined;
     String _connectionSource = "NO CONNECTION";
     String lastDirectory = ".";
@@ -49,6 +51,7 @@ public class Controller {
     HashMap<String, TelnetCommunicator> telnetCommunicatorMap = new HashMap<>();
     
     public Controller() {
+        lastDirectory = System.getProperty("LastDir");
         serialCommunicatorMap = new HashMap<>();
         frameMain = new FrameMain();
         addEventHandlers();
@@ -91,6 +94,8 @@ public class Controller {
                 f.setVisible(true);
                 lastDirectory = f.getDirectory();
 
+                System.setProperty("LastDir", lastDirectory);
+                
                 String file = f.getDirectory() + "/" + f.getFile();
                 try {
                     FileReader fr = new FileReader(file);
@@ -174,6 +179,13 @@ public class Controller {
                     public void close(ConnectionType ct, String source) {
                         frameMain.removeEditorTab(ct, source);
                         sc.disconnect();
+                    }
+                });
+                frameMain.addSerialDisconnectEventHandler(new SerialDisconnectEvent() {
+                    @Override
+                    public void disconnect(String source) {
+                        sc.disconnect();
+                        frameMain.removeEditorTab(ConnectionType.Serial, source);
                     }
                 });
 

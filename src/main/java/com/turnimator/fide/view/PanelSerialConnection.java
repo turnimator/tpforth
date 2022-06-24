@@ -58,7 +58,7 @@ public class PanelSerialConnection extends Panel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for(SerialDisconnectEvent ev: serialDisconnectHandlerList){
-                    ev.disconnect((String) jComboBoxBitRate.getSelectedItem());
+                    ev.disconnect((String) commList.getSelectedItem());
                 }
             }
         });
