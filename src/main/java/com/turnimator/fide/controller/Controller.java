@@ -8,6 +8,7 @@ import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.events.ConnectionDisplayEvent;
 import com.turnimator.fide.events.ConnectionType;
 import com.turnimator.fide.events.FileOpenEvent;
+import com.turnimator.fide.events.FileSaveEvent;
 import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
 import com.turnimator.fide.events.RescanEvent;
@@ -27,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -39,7 +41,7 @@ import javax.swing.JOptionPane;
  * @author atle
  */
 public class Controller {
-    
+
     ConnectionType _connectionType = ConnectionType.Undefined;
     String _connectionSource = "NO CONNECTION";
     String lastDirectory = ".";
@@ -49,7 +51,7 @@ public class Controller {
     SerialCommunicator serialCommunicator = new SerialCommunicator(); // For managing Connect, Disconnect to add/remove communicators
 
     HashMap<String, TelnetCommunicator> telnetCommunicatorMap = new HashMap<>();
-    
+
     public Controller() {
         lastDirectory = System.getProperty("LastDir");
         serialCommunicatorMap = new HashMap<>();
@@ -95,7 +97,7 @@ public class Controller {
                 lastDirectory = f.getDirectory();
 
                 System.setProperty("LastDir", lastDirectory);
-                
+
                 String file = f.getDirectory() + "/" + f.getFile();
                 try {
                     FileReader fr = new FileReader(file);
@@ -115,6 +117,50 @@ public class Controller {
 
             }
         });
+
+        frameMain.addFileSaveHandler(new FileSaveEvent() {
+            @Override
+            public void save(String source) {
+                FileDialog f = new FileDialog(frameMain, "Open", FileDialog.SAVE);
+                f.setDirectory(lastDirectory);
+                f.setFilenameFilter(new FilenameFilter() {
+                    @Override
+                    /**
+                     * These are the file endings for Forth source I can think
+                     * of. Please, feel free to add more.
+                     */
+                    public boolean accept(File dir, String name) {
+                        if (name.endsWith(".fs")) {
+                            return true;
+                        } else if (name.endsWith(".forth")) {
+                            return true;
+                        } else if (name.endsWith(".fth")) {
+                            return true;
+                        } else {
+
+                            return false;
+                        }
+                    }
+                });
+                f.setVisible(true);
+                lastDirectory = f.getDirectory();
+
+                System.setProperty("LastDir", lastDirectory);
+
+                String file = f.getDirectory() + "/" + f.getFile();
+                try {
+                    PrintWriter pw = new PrintWriter(file);
+                    String s = frameMain.getEditorContent();
+                    pw.println(s);
+                    pw.flush();
+                    pw.close();
+                } catch (FileNotFoundException ex) {
+                    frameMain.setStatus(ex.toString());
+                }
+
+            }
+
+        });
     }
 
     private void addConnectionEventHandlers() {
@@ -127,15 +173,17 @@ public class Controller {
         frameMain.addTelnetConnectionEventHandler(new TelnetConnectionEvent() {
             @Override
             public void connect(String connectionString, int port) {
-                /** TELNET COMMUNICATOR AND EDITOR ADDED TO THE TABBED PANE */
+                /**
+                 * TELNET COMMUNICATOR AND EDITOR ADDED TO THE TABBED PANE
+                 */
                 Logger.getAnonymousLogger().log(Level.INFO, "Telnet Connect requested:" + connectionString);
                 TelnetCommunicator tc = telnetCommunicatorMap.get(connectionString);
-                if (tc==null){
+                if (tc == null) {
                     tc = new TelnetCommunicator();
                     telnetCommunicatorMap.put(connectionString, tc);
                 }
-                if ( ! tc.connect(connectionString+":"+port)){
-                     JOptionPane.showMessageDialog(frameMain, tc.getErrorText());
+                if (!tc.connect(connectionString + ":" + port)) {
+                    JOptionPane.showMessageDialog(frameMain, tc.getErrorText());
                 }
                 tc.addReceiveEventHandler(new ReceiveEvent() {
                     @Override
@@ -143,7 +191,7 @@ public class Controller {
                         frameMain.appendResponseText(ct, source, text);
                     }
                 });
-                
+
             }
         });
 
@@ -170,9 +218,9 @@ public class Controller {
                     public void progress(int max, int min, int i) {
                         frameMain.setPogress(max, min, i);
                     }
-                    
+
                 });
-                
+
                 frameMain.setEditorTab(ConnectionType.Serial, serialPort);
                 frameMain.addSerialConnectionCloseEventHandler(new ConnectionCloseEvent() {
                     @Override
@@ -204,13 +252,13 @@ public class Controller {
         frameMain.addUploadHandler(new UploadEvent() {
             @Override
             public void upload(ConnectionType ct, String source, String text) {
-                
+
                 switch (ct) {
                     case Serial:
                         Logger.getAnonymousLogger().log(Level.INFO, "Controller  sending to " + source);
                         SerialCommunicator serialCommunicator = serialCommunicatorMap.get(source);
-                        if (serialCommunicator != null){
-                            if ( ! serialCommunicator.send(text)){
+                        if (serialCommunicator != null) {
+                            if (!serialCommunicator.send(text)) {
                                 Logger.getAnonymousLogger().log(Level.WARNING, serialCommunicator.getErrorText());
                             }
                         }
@@ -218,8 +266,8 @@ public class Controller {
 
                     case Telnet:
                         TelnetCommunicator tc = telnetCommunicatorMap.get(source);
-                        if (tc != null){
-                            if ( ! tc.send(text)){
+                        if (tc != null) {
+                            if (!tc.send(text)) {
                                 Logger.getAnonymousLogger().log(Level.WARNING, tc.getErrorText());
                             }
                         }

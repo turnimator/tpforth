@@ -5,8 +5,6 @@
 package com.turnimator.fide;
 
 import com.turnimator.fide.controller.Controller;
-import com.turnimator.fide.view.FrameMain;
-import javax.swing.JFrame;
 
 /**
  *

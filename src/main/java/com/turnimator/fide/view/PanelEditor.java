@@ -11,6 +11,8 @@ import java.awt.Dimension;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -18,6 +20,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.text.BadLocationException;
 
 /**
  *
@@ -94,4 +97,24 @@ public class PanelEditor extends JPanel {
     public ConnectionType getConnectionTyype() {
        return _connectionType;
     }
+
+    public String getSelectedText() {
+        return editorPane.getSelectedText();
+    }
+    
+    public void paste(String s){
+        editorPane.setText(editorPane.getText() + s);
+    }
+
+    void deleteSelectedText() {
+        int selectionStart = editorPane.getSelectionStart();
+        int selectionEnd = editorPane.getSelectionEnd();
+        String sstart = "";
+        String send = "";
+        String s = editorPane.getText();
+        String s1 = s.substring(0, selectionStart);
+        String s2 = s.substring(selectionEnd, s.length());
+        editorPane.setText(s1 + s2);
+    }
+    
 }
