@@ -60,6 +60,8 @@ public class FrameMain extends JFrame {
     ConnectionType _connectionType;
     String _connectionSource;
 
+    String fs = System.getProperty("file.separator");
+    
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     DataFlavor dataFlavor = DataFlavor.stringFlavor;
     
@@ -238,25 +240,29 @@ public class FrameMain extends JFrame {
 
     }
 
+    private String pth(String path){
+        return path.replace("/", fs);
+    }
+    
     private void addToolBar() {
         String class_path = System.getProperty("java.class.path");
         System.out.println(class_path);
         String exec_path = class_path.split(":")[0];
         System.out.println("Exec_path: " + exec_path);
-        String fs = System.getProperty("file.separator");
         
         
-        String icon_path = exec_path + "/../../icons";
+        
+        String icon_path = exec_path + pth("/../../icons");
         if (exec_path.endsWith(".jar")){
             String[] split = exec_path.split(fs);
             exec_path = exec_path.replace(split[split.length - 1], "");
             System.out.println("Exec_path (fixed): " + exec_path);
-            icon_path = exec_path + "../icons";
+            icon_path = exec_path + pth("../icons");
         }
         System.out.println("Icon_path: " + icon_path);
         
         add(toolBar, BorderLayout.PAGE_START);
-        JButton buttonConnect = new JButton(new ImageIcon(icon_path + "/devices/modem-symbolic.symbolic.png"));
+        JButton buttonConnect = new JButton(new ImageIcon(icon_path + pth("/devices/modem-symbolic.symbolic.png")));
         buttonConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -268,7 +274,7 @@ public class FrameMain extends JFrame {
         buttonConnect.setToolTipText("Connect to Forth");
         toolBar.add(buttonConnect);
 
-        JButton buttonUpload = new JButton(new ImageIcon(icon_path + "/actions/document-send-symbolic.symbolic.png"));
+        JButton buttonUpload = new JButton(new ImageIcon(icon_path + pth("/actions/document-send-symbolic.symbolic.png")));
         buttonUpload.setToolTipText("Upload Forth code");
         buttonUpload.addActionListener(new ActionListener() {
             @Override
