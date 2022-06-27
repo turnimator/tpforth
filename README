@@ -1,0 +1,19 @@
+To try it out:
+
+On this page,press the green button named "Code". A dialog pops down.
+Select "Download Zip."
+
+On your computer, extract the content of the downloaded Zip file into a folder, 
+creating a folder with the same name as the Zip file but without the Zip extension.
+
+cd into the newly created directory and type
+
+java -jar target/fide-1.0-SNAPSHOT.jar 
+
+(Under Windows the '/' is replaced by a '\')
+
+
+
+
+
+
