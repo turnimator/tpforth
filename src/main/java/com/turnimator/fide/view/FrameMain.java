@@ -247,7 +247,13 @@ public class FrameMain extends JFrame {
     private void addToolBar() {
         String class_path = System.getProperty("java.class.path");
         System.out.println(class_path);
-        String exec_path = class_path.split(":")[0];
+        String exec_path = "";
+        try {
+        if (fs.equals("/")) exec_path = class_path.split(":")[0];
+        else exec_path = class_path.split(";")[0];
+        } catch(Exception ex){
+            System.out.println(ex.toString());
+        }
         System.out.println("Exec_path: " + exec_path);
         
         
