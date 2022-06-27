@@ -13,6 +13,7 @@
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/model/TelnetCommunicator.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/view/PanelEditor.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/SerialConnectionEvent.java
+/home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/FileSaveEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/ConnectionType.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/Main.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/FileOpenEvent.java

@@ -31,6 +31,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -238,8 +239,24 @@ public class FrameMain extends JFrame {
     }
 
     private void addToolBar() {
+        String class_path = System.getProperty("java.class.path");
+        System.out.println(class_path);
+        String exec_path = class_path.split(":")[0];
+        System.out.println("Exec_path: " + exec_path);
+        String fs = System.getProperty("file.separator");
+        
+        
+        String icon_path = exec_path + "/../../icons";
+        if (exec_path.endsWith(".jar")){
+            String[] split = exec_path.split(fs);
+            exec_path = exec_path.replace(split[split.length - 1], "");
+            System.out.println("Exec_path (fixed): " + exec_path);
+            icon_path = exec_path + "../icons";
+        }
+        System.out.println("Icon_path: " + icon_path);
+        
         add(toolBar, BorderLayout.PAGE_START);
-        JButton buttonConnect = new JButton(new ImageIcon("icons/devices/modem-symbolic.symbolic.png"));
+        JButton buttonConnect = new JButton(new ImageIcon(icon_path + "/devices/modem-symbolic.symbolic.png"));
         buttonConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -251,7 +268,7 @@ public class FrameMain extends JFrame {
         buttonConnect.setToolTipText("Connect to Forth");
         toolBar.add(buttonConnect);
 
-        JButton buttonUpload = new JButton(new ImageIcon("icons/actions/document-send-symbolic.symbolic.png"));
+        JButton buttonUpload = new JButton(new ImageIcon(icon_path + "/actions/document-send-symbolic.symbolic.png"));
         buttonUpload.setToolTipText("Upload Forth code");
         buttonUpload.addActionListener(new ActionListener() {
             @Override
