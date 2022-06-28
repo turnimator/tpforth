@@ -11,9 +11,11 @@ cd into the newly created directory and type
 java -jar target/fide-1.0-SNAPSHOT.jar 
 
 Under Windows, assuming you downloaded to "Downloads" you type something like
-"\Program Files (x86)\Java\jre1.8.0_333\bin"\java.exe -jar Downloads\fide-master\fide-master\target\fide-1.0-SNAPSHOT.jar"
+32-bit Java: "\Program Files (x86)\Java\jre1.8.0_333\bin"\java.exe -jar Downloads\fide-master\fide-master\target\fide-1.0-SNAPSHOT.jar"
 
+64-bit Java: "\Program Files\Java\jre1.8.0_333\bin"\java.exe -jar Downloads\fide-master\fide-master\target\fide-1.0-SNAPSHOT.jar"
 
+If your Java version differs from mine, you have to adapt the commands above.
 
 
 
