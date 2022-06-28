@@ -115,7 +115,7 @@ public class TelnetCommunicator implements CommunicatorInterface {
      * @param s
      */
     @Override
-    public boolean send(String s) {
+    public boolean send(final String s) {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
