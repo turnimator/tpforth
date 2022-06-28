@@ -248,7 +248,10 @@ public class FrameMain extends JFrame {
         slash = File.separator;
         
         String exec_path = class_path.split(File.pathSeparator)[0];
-        
+        if (exec_path.endsWith(".jar")){
+            String[] sa = exec_path.split(slash);
+            exec_path = exec_path.replace(sa[sa.length - 1], "");
+        }
         
         System.out.println("Exec_path: " + exec_path);
         
