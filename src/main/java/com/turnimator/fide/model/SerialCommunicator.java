@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,8 +53,10 @@ public class SerialCommunicator implements CommunicatorInterface {
 
     public ArrayList<String> getPorts() {
         ports.clear();
-        var commPorts = Arrays.asList(SerialPort.getCommPorts());
-        commPorts.forEach(p -> ports.add(p.getSystemPortName()));
+        ArrayList<SerialPort> commPorts = (ArrayList<SerialPort>) Arrays.asList(SerialPort.getCommPorts());
+        for(SerialPort p:commPorts){
+            ports.add(p.getSystemPortName());
+        }
         return ports;
     }
 

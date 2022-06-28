@@ -199,7 +199,7 @@ public class Controller {
 
             @Override
             public void connect(ConnectionType ct, String serialPort, int bitRate) {
-                SerialCommunicator sc = new SerialCommunicator();
+                final SerialCommunicator sc = new SerialCommunicator();
 
                 if (!sc.connect(serialPort)) {
                     JOptionPane.showMessageDialog(frameMain, sc.getErrorText());
