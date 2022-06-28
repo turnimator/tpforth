@@ -53,7 +53,7 @@ public class SerialCommunicator implements CommunicatorInterface {
 
     public ArrayList<String> getPorts() {
         ports.clear();
-        ArrayList<SerialPort> commPorts = (ArrayList<SerialPort>) Arrays.asList(SerialPort.getCommPorts());
+        List<SerialPort> commPorts = Arrays.asList(SerialPort.getCommPorts());
         for(SerialPort p:commPorts){
             ports.add(p.getSystemPortName());
         }
