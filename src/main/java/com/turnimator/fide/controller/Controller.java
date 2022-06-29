@@ -209,7 +209,7 @@ public class Controller {
                 sc.addReceiveEventHandler(new ReceiveEvent() {
                     @Override
                     public void receive(ConnectionType ct, String source, String text) {
-                        Logger.getAnonymousLogger().log(Level.INFO, "Received " + text);
+                        //Logger.getAnonymousLogger().log(Level.INFO, "Received " + text);
                         frameMain.appendResponseText(ct, source, text);
                     }
                 });

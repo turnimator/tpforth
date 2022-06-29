@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -44,7 +43,6 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
@@ -60,6 +58,7 @@ public class FrameMain extends JFrame {
 
     ConnectionType _connectionType;
     String _connectionSource;
+    private PanelEditor _currentEditorPanel = null;
 
     String slash = System.getProperty("file.separator");
     
@@ -80,8 +79,8 @@ public class FrameMain extends JFrame {
     private final ArrayList<UploadEvent> uploadHandlerList = new ArrayList<>();
     private final ArrayList<FileSaveEvent> fileSaveHandlerList = new ArrayList<>();
 
-    private final HashMap<String, PanelEditor> editorPanelMap = new HashMap<>();
-
+    private final HashMap<String, PanelEditor> editorPanelMap = new HashMap<>();  
+    
     private final JMenuBar menuBar = new JMenuBar();
     private final JMenu menuFile = new JMenu("File");
     private final JMenu menuEdit = new JMenu("Edit");
@@ -93,6 +92,13 @@ public class FrameMain extends JFrame {
     private final JLabel statusLabel = new JLabel();
     private final JProgressBar statusProgressBar = new JProgressBar();
 
+    private PanelEditor getPanelEditor(String source){
+        if (! source.equals(_connectionSource)){
+            _currentEditorPanel = editorPanelMap.get(source);
+            _connectionSource = source;
+        }
+        return _currentEditorPanel;
+    }
     /**
      * There is one list of event handlers for FrameMain + ONE LIST OF EVENT
      * HANDLER FOR EACH CONNECTION
@@ -188,7 +194,7 @@ public class FrameMain extends JFrame {
         menuEdit.add(new JMenuItem(new AbstractAction("Copy") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                PanelEditor editor = editorPanelMap.get(_connectionSource);
+                PanelEditor editor = _currentEditorPanel;
                 if (editor != null){
                     String s = editor.getSelectedText();
                     clipboard.setContents(new StringSelection(s), new ClipboardOwner() {
@@ -203,7 +209,7 @@ public class FrameMain extends JFrame {
         menuEdit.add(new JMenuItem(new AbstractAction("Cut") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                PanelEditor editor = editorPanelMap.get(_connectionSource);
+                PanelEditor editor = _currentEditorPanel;
                 if (editor != null){
                  String s = editor.getSelectedText();
                     clipboard.setContents(new StringSelection(s), new ClipboardOwner() {
@@ -219,7 +225,7 @@ public class FrameMain extends JFrame {
         menuEdit.add(new JMenuItem(new AbstractAction("Paste") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                PanelEditor editor = editorPanelMap.get(_connectionSource);
+                PanelEditor editor = _currentEditorPanel;
                 String data="";
                 if (editor != null){
                     try {
@@ -280,7 +286,7 @@ public class FrameMain extends JFrame {
         buttonUpload.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                PanelEditor get = editorPanelMap.get(_connectionSource);
+                PanelEditor get = _currentEditorPanel;
                 String text = "";
                 if (get != null) {
                     text = get.getEditorText();
@@ -319,7 +325,7 @@ public class FrameMain extends JFrame {
                     return;
                 }
                 _connectionSource = tabbedPane.getTitleAt(selectedIndex);
-                Logger.getAnonymousLogger().log(Level.INFO, "Tab source " + _connectionSource);
+                // Logger.getAnonymousLogger().log(Level.INFO, "Tab source " + _connectionSource);
                 PanelEditor editor = (PanelEditor) tabbedPane.getComponentAt(selectedIndex);
                 _connectionType = editor.getConnectionTyype();
             }
@@ -395,7 +401,8 @@ public class FrameMain extends JFrame {
     }
 
     public void setEditorTab(ConnectionType ct, String source) {
-        PanelEditor editorPanel = editorPanelMap.get(source);
+        
+        PanelEditor editorPanel = getPanelEditor(source);
         if (editorPanel == null) {
             editorPanel = new PanelEditor(ct, source);
             editorPanel.setMinimumSize(new Dimension(300, 400));
@@ -421,11 +428,12 @@ public class FrameMain extends JFrame {
         }
         _connectionSource = source;
         _connectionType = ct;
+        _currentEditorPanel = editorPanel;
     }
 
     public void removeEditorTab(ConnectionType ct, String source) {
 
-        PanelEditor get = editorPanelMap.get(source);
+        PanelEditor get = getPanelEditor(source);
         if (get != null) {
             tabbedPane.remove(get);
         } else {
@@ -442,13 +450,13 @@ public class FrameMain extends JFrame {
     }
 
     public void appendResponseText(ConnectionType ct, String source, String text) {
-        PanelEditor editor = editorPanelMap.get(source);
+        PanelEditor editor = getPanelEditor(source);
         if (editor == null) {
             Logger.getAnonymousLogger().log(Level.SEVERE, "Unknown source:" + source + ":" + text);
             setEditorTab(ct, source);
-            editor = editorPanelMap.get(source);
+            
         }
-        editor.appendText(text);
+        _currentEditorPanel.appendText(text);
     }
 
     public void clearSerialPortList() {
