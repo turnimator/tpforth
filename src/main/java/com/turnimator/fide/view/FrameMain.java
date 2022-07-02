@@ -261,7 +261,7 @@ public class FrameMain extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for (ConnectionsDisplayEvent ev : connectionDisplayHandlerList) {
-                    ev.setVisible(true);
+                    ev.setVisible(!panelConnections.isVisible());
                 }
             }
         });
@@ -397,9 +397,7 @@ public class FrameMain extends JFrame {
                 if (id.getConnectionType() == ConnectionType.Undefined){
                     return;
                 } 
-                //Logger.getAnonymousLogger().log(Level.INFO, "TransmitRequest from " + id + ": "+text);
-                // TODO if id.getConnectionType() == ConnectionType.All loop through all entries in map
-                // and call ev.transmit for each one.
+                
                 for (TransmitEvent ev : transmitEventHandlerList) {
                     ev.transmit(id, text);
                 }

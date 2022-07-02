@@ -211,7 +211,7 @@ public class Controller {
         frameMain.addDisplayConnectionsRequestHandler(new ConnectionsDisplayEvent() {
             @Override
             public void setVisible(boolean b) {
-                frameMain.setConnectionsVisible(true);
+                frameMain.setConnectionsVisible(b);
             }
         });
         frameMain.addTransmitEventHandler(new TransmitEvent() {
