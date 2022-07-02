@@ -175,9 +175,13 @@ public class Controller {
                  */
                 _dispatcher.createCommunicator(ConnectionType.Telnet, host, port);
                 ConnectionId connectionId = _dispatcher.connect();
-
+                if (connectionId == null) {
+                    JOptionPane.showMessageDialog(frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
+                    return;
+                }
                 frameMain.setConnectionsVisible(false);
                 frameMain.addEditorTab(connectionId);
+                frameMain.setEditorTab(connectionId);
             }
         });
 
@@ -187,9 +191,13 @@ public class Controller {
             public void connect(String port, int bitRate) {
                 _dispatcher.createCommunicator(ConnectionType.Serial, "", port);
                 ConnectionId connectionId = _dispatcher.connect();
-
+                if (connectionId == null) {
+                    JOptionPane.showMessageDialog(frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
+                    return;
+                }
                 frameMain.setConnectionsVisible(false);
                 frameMain.addEditorTab(connectionId);
+                frameMain.setEditorTab(connectionId);
             }
         });
 
