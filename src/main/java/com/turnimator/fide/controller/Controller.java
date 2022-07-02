@@ -4,21 +4,17 @@
  */
 package com.turnimator.fide.controller;
 
-import com.turnimator.fide.events.ConnectionCloseEvent;
-import com.turnimator.fide.events.ConnectionDisplayEvent;
+import com.turnimator.fide.ConnectionId;
+import com.turnimator.fide.events.ConnectionsDisplayEvent;
 import com.turnimator.fide.events.ConnectionType;
 import com.turnimator.fide.events.FileOpenEvent;
 import com.turnimator.fide.events.FileSaveEvent;
-import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
 import com.turnimator.fide.events.RescanEvent;
-import com.turnimator.fide.events.SerialConnectionEvent;
-import com.turnimator.fide.events.SerialDisconnectEvent;
-import com.turnimator.fide.events.TelnetConnectionEvent;
+import com.turnimator.fide.events.SerialConnectionRequestEvent;
+import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
-import com.turnimator.fide.model.SerialCommunicator;
-import com.turnimator.fide.model.TelnetCommunicator;
 import com.turnimator.fide.view.FrameMain;
 import java.awt.FileDialog;
 import static java.awt.FileDialog.LOAD;
@@ -29,10 +25,6 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 
@@ -42,28 +34,30 @@ import javax.swing.JOptionPane;
  */
 public class Controller {
 
-    ConnectionType _connectionType = ConnectionType.Undefined;
-    String _connectionSource = "NO CONNECTION";
     String lastDirectory = ".";
-
     FrameMain frameMain;
-    HashMap<String, SerialCommunicator> serialCommunicatorMap; // For Transmitting and receiving to individual panels
-    SerialCommunicator serialCommunicator = new SerialCommunicator(); // For managing Connect, Disconnect to add/remove communicators
-
-    HashMap<String, TelnetCommunicator> telnetCommunicatorMap = new HashMap<>();
+    CommunicationDispatcher _dispatcher = new CommunicationDispatcher();
 
     public Controller() {
         lastDirectory = System.getProperty("LastDir");
-        serialCommunicatorMap = new HashMap<>();
+
         frameMain = new FrameMain();
         addEventHandlers();
         frameMain.setVisible(true);
-        rescanSerialPorts();
+        _dispatcher.createCommunicator(ConnectionType.Serial, "", "");
+        _dispatcher.addReceiveEventHandler(new ReceiveEvent() {
+            @Override
+            public void receive(ConnectionId id, String text) {
+                frameMain.appendResponseText(id, text);
+            }
+        });
+        scanPorts();
+        frameMain.addEditorTab(new ConnectionId(ConnectionType.Undefined, "Scratchpad"));
     }
 
-    void rescanSerialPorts() {
+    void scanPorts() {
         frameMain.clearSerialPortList();
-        for (String s : serialCommunicator.getPorts()) {
+        for (String s : _dispatcher.getPorts()) {
             frameMain.addSerialPortToList(s);
         }
     }
@@ -97,14 +91,14 @@ public class Controller {
                 lastDirectory = f.getDirectory();
 
                 System.setProperty("LastDir", lastDirectory);
-
+                frameMain.setConnectionId(_dispatcher.getConnectionId());
                 String file = f.getDirectory() + "/" + f.getFile();
                 try {
                     FileReader fr = new FileReader(file);
                     BufferedReader br = new BufferedReader(fr);
                     Stream<String> lines = br.lines();
                     for (Object o : lines.toArray()) {
-                        frameMain.appendProgramText(_connectionType, _connectionSource, (String) o);
+                        frameMain.appendProgramText((String) o);
                     }
                     try {
                         fr.close();
@@ -120,7 +114,7 @@ public class Controller {
 
         frameMain.addFileSaveHandler(new FileSaveEvent() {
             @Override
-            public void save(String source) {
+            public void save(ConnectionId source) {
                 FileDialog f = new FileDialog(frameMain, "Open", FileDialog.SAVE);
                 f.setDirectory(lastDirectory);
                 f.setFilenameFilter(new FilenameFilter() {
@@ -167,80 +161,32 @@ public class Controller {
         frameMain.addRescanHandler(new RescanEvent() {
             @Override
             public void rescan() {
-                rescanSerialPorts();
+                scanPorts();
             }
         });
-        frameMain.addTelnetConnectionEventHandler(new TelnetConnectionEvent() {
+        frameMain.addTelnetConnectionRequestHandler(new TelnetConnectionRequestEvent() {
             @Override
-            public void connect(String connectionString, int port) {
+            public void connect(String host, String port) {
                 /**
                  * TELNET COMMUNICATOR AND EDITOR ADDED TO THE TABBED PANE
                  */
-                Logger.getAnonymousLogger().log(Level.INFO, "Telnet Connect requested:" + connectionString);
-                TelnetCommunicator tc = telnetCommunicatorMap.get(connectionString);
-                if (tc == null) {
-                    tc = new TelnetCommunicator();
-                    telnetCommunicatorMap.put(connectionString, tc);
-                }
-                if (!tc.connect(connectionString + ":" + port)) {
-                    JOptionPane.showMessageDialog(frameMain, tc.getErrorText());
-                }
-                tc.addReceiveEventHandler(new ReceiveEvent() {
-                    @Override
-                    public void receive(ConnectionType ct, String source, String text) {
-                        frameMain.appendResponseText(ct, source, text);
-                    }
-                });
+                _dispatcher.createCommunicator(ConnectionType.Telnet, host, port);
+                ConnectionId connectionId = _dispatcher.connect();
 
+                frameMain.setConnectionsVisible(false);
+                frameMain.addEditorTab(connectionId);
             }
         });
 
-        frameMain.addSerialConnectionEventHandler(new SerialConnectionEvent() {
+        frameMain.addSerialConnectionRequestHandler(new SerialConnectionRequestEvent() {
 
             @Override
-            public void connect(ConnectionType ct, String serialPort, int bitRate) {
-                final SerialCommunicator sc = new SerialCommunicator();
-
-                if (!sc.connect(serialPort)) {
-                    JOptionPane.showMessageDialog(frameMain, sc.getErrorText());
-                    return;
-                }
-                sc.setBitrate(bitRate);
-                sc.addReceiveEventHandler(new ReceiveEvent() {
-                    @Override
-                    public void receive(ConnectionType ct, String source, String text) {
-                        //Logger.getAnonymousLogger().log(Level.INFO, "Received " + text);
-                        frameMain.appendResponseText(ct, source, text);
-                    }
-                });
-                sc.addProgressListener(new ProgressEvent() {
-                    @Override
-                    public void progress(int max, int min, int i) {
-                        frameMain.setPogress(max, min, i);
-                    }
-
-                });
-
-                frameMain.setEditorTab(ConnectionType.Serial, serialPort);
-                frameMain.addSerialConnectionCloseEventHandler(new ConnectionCloseEvent() {
-                    @Override
-                    public void close(ConnectionType ct, String source) {
-                        frameMain.removeEditorTab(ct, source);
-                        sc.disconnect();
-                    }
-                });
-                frameMain.addSerialDisconnectEventHandler(new SerialDisconnectEvent() {
-                    @Override
-                    public void disconnect(String source) {
-                        sc.disconnect();
-                        frameMain.removeEditorTab(ConnectionType.Serial, source);
-                    }
-                });
+            public void connect(String port, int bitRate) {
+                _dispatcher.createCommunicator(ConnectionType.Serial, "", port);
+                ConnectionId connectionId = _dispatcher.connect();
 
                 frameMain.setConnectionsVisible(false);
-                serialCommunicatorMap.put(serialPort, sc);
-                _connectionType = ct;
-                _connectionSource = serialPort;
+                frameMain.addEditorTab(connectionId);
             }
         });
 
@@ -249,62 +195,26 @@ public class Controller {
     private void addEventHandlers() {
         addFileEventHandlers();
         addConnectionEventHandlers();
-        frameMain.addUploadHandler(new UploadEvent() {
+        frameMain.addUploadRequestHandler(new UploadEvent() {
             @Override
-            public void upload(ConnectionType ct, String source, String text) {
-
-                switch (ct) {
-                    case Serial:
-                        Logger.getAnonymousLogger().log(Level.INFO, "Controller  sending to " + source);
-                        SerialCommunicator serialCommunicator = serialCommunicatorMap.get(source);
-                        if (serialCommunicator != null) {
-                            if (!serialCommunicator.send(text)) {
-                                Logger.getAnonymousLogger().log(Level.WARNING, serialCommunicator.getErrorText());
-                            }
-                        }
-                        break;
-
-                    case Telnet:
-                        TelnetCommunicator tc = telnetCommunicatorMap.get(source);
-                        if (tc != null) {
-                            if (!tc.send(text)) {
-                                Logger.getAnonymousLogger().log(Level.WARNING, tc.getErrorText());
-                            }
-                        }
-                        break;
-                    case Undefined:
-                    default:
-                        Logger.getAnonymousLogger().log(Level.SEVERE, "Connection type: UNDEFINED");
-                }
-
+            public void upload(ConnectionId id, String text) {
+                _dispatcher.send(id, text);
             }
         });
         /**
          * This is called in response to a click on the Connection toolbar or
          * menu
          */
-        frameMain.addDisplayConnectionsHandler(new ConnectionDisplayEvent() {
+        frameMain.addDisplayConnectionsRequestHandler(new ConnectionsDisplayEvent() {
             @Override
-            public void displayConnections(boolean b) {
+            public void setVisible(boolean b) {
                 frameMain.setConnectionsVisible(true);
             }
         });
         frameMain.addTransmitEventHandler(new TransmitEvent() {
             @Override
-            public void transmit(ConnectionType t, String source, String text) {
-                switch (t) {
-                    case Serial:
-                        SerialCommunicator get = serialCommunicatorMap.get(source);
-                        if (get != null) {
-                            get.send(text);
-                        }
-                        break;
-                    case Telnet:
-                        break;
-                    case Undefined:
-                        break;
-
-                }
+            public void transmit(ConnectionId id, String text) {
+                _dispatcher.send(id, text);
             }
         });
     }

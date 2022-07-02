@@ -7,6 +7,7 @@ package com.turnimator.fide.model;
 
 import com.fazecast.jSerialComm.SerialPort;
 import static com.fazecast.jSerialComm.SerialPort.TIMEOUT_READ_BLOCKING;
+import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionType;
 import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
@@ -26,19 +27,23 @@ import java.util.logging.Logger;
  * @author atle
  */
 public class SerialCommunicator implements CommunicatorInterface {
+    private String _host = "";
+    private String _port = "";
+    
+    private final ArrayList<ProgressEvent> progressListeners = new ArrayList<>();
 
-    ArrayList<ProgressEvent> progressListeners = new ArrayList<>();
+    private String errorText = "";
+    private int _bitrate = 115200;
+    private final ArrayList<String> ports = new ArrayList<>();
+    private SerialPort commPort = null;
+    private final ArrayList<ReceiveEvent> recvList = new ArrayList<>();
+    private final InputStream is = null;
+    private BufferedReader br = null;
+    private PrintWriter pw;
+    private boolean _stopFlag = false;
+    private ConnectionId _id;
+    
 
-    String errorText = "";
-    int _bitrate = 115200;
-    ArrayList<String> ports = new ArrayList<>();
-    SerialPort commPort = null;
-    ArrayList<ReceiveEvent> recvList = new ArrayList<>();
-    InputStream is = null;
-    BufferedReader br = null;
-    PrintWriter pw;
-
-    @Override
     public void addReceiveEventHandler(ReceiveEvent evt) {
         recvList.add(evt);
     }
@@ -54,30 +59,34 @@ public class SerialCommunicator implements CommunicatorInterface {
     public ArrayList<String> getPorts() {
         ports.clear();
         List<SerialPort> commPorts = Arrays.asList(SerialPort.getCommPorts());
-        for(SerialPort p:commPorts){
+        for (SerialPort p : commPorts) {
             ports.add(p.getSystemPortName());
         }
         return ports;
     }
 
-    @Override
-    public boolean connect(String connectionString) {
-        commPort = SerialPort.getCommPort(connectionString);
+    /**
+     * 
+     * @param connectionString should contain bitrate if non-default
+     * @return 
+     */
+    public ConnectionId connect() {
+        commPort = SerialPort.getCommPort(_port);
 
         commPort.openPort();
         commPort.setBaudRate(115200);
         commPort.setComPortTimeouts(TIMEOUT_READ_BLOCKING, 2000, 2000);
-        System.out.println("Connecting " + connectionString + " at " + _bitrate + "");
+        System.out.println("Connecting " + _port + " at " + _bitrate + "");
         if (!commPort.isOpen()) {
             errorText = "Connection failed";
-            return false;
+            return null;
         }
         pw = new PrintWriter(commPort.getOutputStream());
         br = new BufferedReader(new InputStreamReader(commPort.getInputStream()));
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (;;) {
+                for (; !_stopFlag;) {
                     String s = "";
                     try {
                         s = br.readLine();
@@ -86,41 +95,34 @@ public class SerialCommunicator implements CommunicatorInterface {
                     }
                     if (s != null && s.length() > 0) {
                         for (ReceiveEvent evt : recvList) {
-                            evt.receive(ConnectionType.Serial, commPort.getSystemPortName(), s);
+                            evt.receive(_id, s);
                         }
                     }
                 }
+                commPort.closePort();
             }
         }).start();
         errorText = "Connected";
-        return true;
+        _id = new ConnectionId(ConnectionType.Serial, _port);
+        return _id;
     }
 
-    @Override
     public boolean disconnect() {
-
-        boolean closePort = commPort.closePort();
-        commPort.removeDataListener();
-        try {
-            br.close();
-        } catch (IOException ex) {
-            errorText = ex.toString();
-            return false;
-        }
-        pw.close();
-
-        errorText = "Disconnected";
+        _stopFlag = true;
         return true;
     }
 
-    @Override
+    
     public boolean send(String s) {
+       // Logger.getAnonymousLogger().log(Level.INFO, "Serial " + _port + " Sending " + s);
         if (commPort == null) {
             errorText = "Must connect to port first!";
+            Logger.getAnonymousLogger().log(Level.SEVERE, errorText);
             return false;
         }
         if (!commPort.isOpen()) {
             errorText = "Port is not open (is another process using it?)";
+            Logger.getAnonymousLogger().log(Level.SEVERE, errorText);
             return false;
         }
         String[] split = s.split("\n");
@@ -142,23 +144,30 @@ public class SerialCommunicator implements CommunicatorInterface {
         return true;
     }
 
-    @Override
+    
     public boolean isOpen() {
         return commPort.isOpen();
     }
 
-    @Override
+    
     public String getErrorText() {
         return errorText;
     }
 
-    @Override
-    public String getSourceId() {
-        if (commPort == null) {
-            return "UNCONNECTED";
-        } else {
-            return commPort.getSystemPortName();
-        }
+    
+    public ConnectionId getId() {
+        return _id;
     }
 
+    @Override
+    public void setHost(String host) {
+        _host = host;
+    }
+
+    @Override
+    public void setPort(String port) {
+        _port = port;
+    }
+
+   
 }

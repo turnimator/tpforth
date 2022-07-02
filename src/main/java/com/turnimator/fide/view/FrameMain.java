@@ -4,16 +4,15 @@
  */
 package com.turnimator.fide.view;
 
+import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionCloseEvent;
-import com.turnimator.fide.events.ConnectionDisplayEvent;
-import com.turnimator.fide.events.ConnectionType;
+import com.turnimator.fide.events.ConnectionsDisplayEvent;
 import com.turnimator.fide.events.FileOpenEvent;
 import com.turnimator.fide.events.FileSaveEvent;
 import com.turnimator.fide.events.RescanEvent;
-import com.turnimator.fide.events.SerialConnectionEvent;
-import com.turnimator.fide.events.SerialDisconnectEvent;
-import com.turnimator.fide.events.TelnetConnectionEvent;
-import com.turnimator.fide.events.TelnetDisconnectEvent;
+import com.turnimator.fide.events.SerialConnectionRequestEvent;
+import com.turnimator.fide.events.DisconnectEvent;
+import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
 import java.awt.BorderLayout;
@@ -56,31 +55,27 @@ import javax.swing.event.ChangeListener;
  */
 public class FrameMain extends JFrame {
 
-    ConnectionType _connectionType;
-    String _connectionSource;
+    private final HashMap<ConnectionId, PanelEditor> editorPanelMap = new HashMap<>();
     private PanelEditor _currentEditorPanel = null;
 
     String slash = System.getProperty("file.separator");
-    
+
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     DataFlavor dataFlavor = DataFlavor.stringFlavor;
-    
-    private ArrayList<SerialConnectionEvent> serialConnectHandlerList = new ArrayList<>();
-    private ArrayList<SerialDisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
-    private ArrayList<TelnetConnectionEvent> telnetConnectHandlerList = new ArrayList<>();
-    private ArrayList<TelnetDisconnectEvent> telnetDisconnectHandlerList = new ArrayList<>();
 
-    private final ArrayList<ConnectionDisplayEvent> connectionDisplayHandlerList = new ArrayList<>();
+    private ArrayList<SerialConnectionRequestEvent> serialConnectRequestHandlerList = new ArrayList<>();
+    private ArrayList<DisconnectEvent> disconnectHandlerList = new ArrayList<>();
+    private ArrayList<TelnetConnectionRequestEvent> telnetConnectRequestHandlerList = new ArrayList<>();
+
+    private final ArrayList<ConnectionsDisplayEvent> connectionDisplayHandlerList = new ArrayList<>();
     private final ArrayList<TransmitEvent> transmitEventHandlerList = new ArrayList<>();
     private final ArrayList<ConnectionCloseEvent> connectionCloseHandlerList = new ArrayList<>();
     private final ArrayList<RescanEvent> rescanHandlerList = new ArrayList<>();
 
     private final ArrayList<FileOpenEvent> fileOpenHandlerList = new ArrayList<>();
-    private final ArrayList<UploadEvent> uploadHandlerList = new ArrayList<>();
+    private final ArrayList<UploadEvent> _uploadRequestHandlerList = new ArrayList<>();
     private final ArrayList<FileSaveEvent> fileSaveHandlerList = new ArrayList<>();
 
-    private final HashMap<String, PanelEditor> editorPanelMap = new HashMap<>();  
-    
     private final JMenuBar menuBar = new JMenuBar();
     private final JMenu menuFile = new JMenu("File");
     private final JMenu menuEdit = new JMenu("Edit");
@@ -92,13 +87,13 @@ public class FrameMain extends JFrame {
     private final JLabel statusLabel = new JLabel();
     private final JProgressBar statusProgressBar = new JProgressBar();
 
-    private PanelEditor getPanelEditor(String source){
-        if (! source.equals(_connectionSource)){
-            _currentEditorPanel = editorPanelMap.get(source);
-            _connectionSource = source;
+    private PanelEditor ensurePanelEditor(ConnectionId id) {
+        if (!id.equals(_currentEditorPanel.getConnectionId())) {
+            _currentEditorPanel = editorPanelMap.get(id);
         }
         return _currentEditorPanel;
     }
+
     /**
      * There is one list of event handlers for FrameMain + ONE LIST OF EVENT
      * HANDLER FOR EACH CONNECTION
@@ -109,19 +104,19 @@ public class FrameMain extends JFrame {
         initComponents();
         setVisible(true);
         panelConnections.setVisible(false);
-        panelConnections.addSerialConnectionEventHandler(new SerialConnectionEvent() {
+        panelConnections.addSerialConnectionEventHandler(new SerialConnectionRequestEvent() {
             @Override
-            public void connect(ConnectionType ct, String serialPort, int bitRate) {
-                for (SerialConnectionEvent ev : serialConnectHandlerList) {
-                    ev.connect(ct, serialPort, bitRate);
+            public void connect(String serialPort, int bitRate) {
+                for (SerialConnectionRequestEvent ev : serialConnectRequestHandlerList) {
+                    ev.connect(serialPort, bitRate);
                 }
             }
         });
 
-        panelConnections.addSerialDisconnectEventHandler(new SerialDisconnectEvent() {
+        panelConnections.addDisconnectEventHandler(new DisconnectEvent() {
             @Override
             public void disconnect(String source) {
-                for (SerialDisconnectEvent ev : serialDisconnectHandlerList) {
+                for (DisconnectEvent ev : disconnectHandlerList) {
                     ev.disconnect(source);
                 }
             }
@@ -135,20 +130,11 @@ public class FrameMain extends JFrame {
             }
         });
 
-        panelConnections.addTelnetConnectionHandler(new TelnetConnectionEvent() {
+        panelConnections.addTelnetConnectionHandler(new TelnetConnectionRequestEvent() {
             @Override
-            public void connect(String connectionString, int port) {
-                for (TelnetConnectionEvent ev : telnetConnectHandlerList) {
-                    ev.connect(connectionString, port);
-                }
-            }
-        });
-
-        panelConnections.addTelnetDisconnectHandler(new TelnetDisconnectEvent() {
-            @Override
-            public void disconnect(String source) {
-                for (TelnetDisconnectEvent ev : telnetDisconnectHandlerList) {
-                    ev.disconnect(source);
+            public void connect(String host, String port) {
+                for (TelnetConnectionRequestEvent ev : telnetConnectRequestHandlerList) {
+                    ev.connect(host, port);
                 }
             }
         });
@@ -160,8 +146,8 @@ public class FrameMain extends JFrame {
         JMenuItem itemNew = menuFile.add(new AbstractAction("New") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (ConnectionDisplayEvent ev : connectionDisplayHandlerList) {
-                    ev.displayConnections(true);
+                for (ConnectionsDisplayEvent ev : connectionDisplayHandlerList) {
+                    ev.setVisible(true);
                 }
             }
         });
@@ -178,7 +164,7 @@ public class FrameMain extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for (FileSaveEvent ev : fileSaveHandlerList) {
-                    ev.save(_connectionSource);
+                    ev.save(_currentEditorPanel.getConnectionId());
                 }
             }
         });
@@ -195,12 +181,12 @@ public class FrameMain extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 PanelEditor editor = _currentEditorPanel;
-                if (editor != null){
+                if (editor != null) {
                     String s = editor.getSelectedText();
                     clipboard.setContents(new StringSelection(s), new ClipboardOwner() {
                         @Override
                         public void lostOwnership(Clipboard clipboard, Transferable contents) {
-                            
+
                         }
                     });
                 }
@@ -210,12 +196,12 @@ public class FrameMain extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 PanelEditor editor = _currentEditorPanel;
-                if (editor != null){
-                 String s = editor.getSelectedText();
+                if (editor != null) {
+                    String s = editor.getSelectedText();
                     clipboard.setContents(new StringSelection(s), new ClipboardOwner() {
                         @Override
                         public void lostOwnership(Clipboard clipboard, Transferable contents) {
-                            
+
                         }
                     });
                     editor.deleteSelectedText();
@@ -226,8 +212,8 @@ public class FrameMain extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 PanelEditor editor = _currentEditorPanel;
-                String data="";
-                if (editor != null){
+                String data = "";
+                if (editor != null) {
                     try {
                         data = (String) clipboard.getData(DataFlavor.stringFlavor);
                     } catch (UnsupportedFlavorException | IOException ex) {
@@ -247,41 +233,40 @@ public class FrameMain extends JFrame {
 
     }
 
-    
     private void addToolBar() {
         String class_path = System.getProperty("java.class.path");
         System.out.println(class_path);
         slash = File.separator;
-        
+
         String exec_path = class_path.split(File.pathSeparator)[0];
-        if (exec_path.endsWith(".jar")){
+        if (exec_path.endsWith(".jar")) {
             exec_path = new File(exec_path).getParent();
         }
-        
+
         System.out.println("Exec_path: " + exec_path);
-        
+
         String icon_path = exec_path + slash + ".." + slash;
-        if (exec_path.endsWith("classes")){
+        if (exec_path.endsWith("classes")) {
             icon_path = icon_path + ".." + slash;
         }
         icon_path += "icons" + slash;
-        
+
         System.out.println("Icon_path: " + icon_path);
-        
+
         add(toolBar, BorderLayout.PAGE_START);
-        JButton buttonConnect = new JButton(new ImageIcon(icon_path + "devices"+slash+"modem-symbolic.symbolic.png"));
+        JButton buttonConnect = new JButton(new ImageIcon(icon_path + "devices" + slash + "modem-symbolic.symbolic.png"));
         buttonConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (ConnectionDisplayEvent ev : connectionDisplayHandlerList) {
-                    ev.displayConnections(true);
+                for (ConnectionsDisplayEvent ev : connectionDisplayHandlerList) {
+                    ev.setVisible(true);
                 }
             }
         });
         buttonConnect.setToolTipText("Connect to Forth");
         toolBar.add(buttonConnect);
 
-        JButton buttonUpload = new JButton(new ImageIcon(icon_path + "actions"+slash+"document-send-symbolic.symbolic.png"));
+        JButton buttonUpload = new JButton(new ImageIcon(icon_path + "actions" + slash + "document-send-symbolic.symbolic.png"));
         buttonUpload.setToolTipText("Upload Forth code");
         buttonUpload.addActionListener(new ActionListener() {
             @Override
@@ -291,8 +276,8 @@ public class FrameMain extends JFrame {
                 if (get != null) {
                     text = get.getEditorText();
                 }
-                for (UploadEvent ev : uploadHandlerList) {
-                    ev.upload(_connectionType, _connectionSource, text);
+                for (UploadEvent ev : _uploadRequestHandlerList) {
+                    ev.upload(_currentEditorPanel.getConnectionId(), text);
                 }
             }
         });
@@ -324,36 +309,21 @@ public class FrameMain extends JFrame {
                 if (selectedIndex < 0) {
                     return;
                 }
-                _connectionSource = tabbedPane.getTitleAt(selectedIndex);
                 // Logger.getAnonymousLogger().log(Level.INFO, "Tab source " + _connectionSource);
-                PanelEditor editor = (PanelEditor) tabbedPane.getComponentAt(selectedIndex);
-                _connectionType = editor.getConnectionTyype();
+                _currentEditorPanel = (PanelEditor) tabbedPane.getComponentAt(selectedIndex);
+                
             }
         });
         this.add(panel);
         addStatusLine();
     }
 
-    public void addUploadHandler(UploadEvent ev) {
-        uploadHandlerList.add(ev);
+    public void addUploadRequestHandler(UploadEvent ev) {
+        _uploadRequestHandlerList.add(ev);
     }
 
-    /**
-     * We need to know which connection the user is working on right now
-     *
-     * @param ct
-     */
-    public void setConnectionType(ConnectionType ct) {
-        _connectionType = ct;
-    }
-
-    /**
-     * * We need to know which connection the user is working on right now
-     *
-     * @param sc
-     */
-    public void setConnectionSource(String sc) {
-        _connectionSource = sc;
+    public void setConnectionId(ConnectionId sc) {
+        ensurePanelEditor(sc);
     }
 
     public void addFileOpenHandler(FileOpenEvent ev) {
@@ -368,11 +338,11 @@ public class FrameMain extends JFrame {
         rescanHandlerList.add(ev);
     }
 
-    public void addSerialConnectionCloseEventHandler(ConnectionCloseEvent ev) {
+    public void addConnectionCloseEventHandler(ConnectionCloseEvent ev) {
         connectionCloseHandlerList.add(ev);
     }
 
-    public void addDisplayConnectionsHandler(ConnectionDisplayEvent ev) {
+    public void addDisplayConnectionsRequestHandler(ConnectionsDisplayEvent ev) {
         connectionDisplayHandlerList.add(ev);
     }
 
@@ -380,82 +350,85 @@ public class FrameMain extends JFrame {
         panelConnections.addSerialPortToList(s);
     }
 
-    public void addSerialConnectionEventHandler(SerialConnectionEvent ev) {
-        serialConnectHandlerList.add(ev);
+    public void addSerialConnectionRequestHandler(SerialConnectionRequestEvent ev) {
+        serialConnectRequestHandlerList.add(ev);
     }
 
-    public void addSerialDisconnectEventHandler(SerialDisconnectEvent ev) {
-        serialDisconnectHandlerList.add(ev);
+    public void addDisconnectEventHandler(DisconnectEvent ev) {
+        disconnectHandlerList.add(ev);
     }
 
-    public void addTelnetConnectionEventHandler(TelnetConnectionEvent ev) {
-        telnetConnectHandlerList.add(ev);
-    }
-
-    public void addTelnetDisconnectEventHandler(TelnetDisconnectEvent ev) {
-        telnetDisconnectHandlerList.add(ev);
+    public void addTelnetConnectionRequestHandler(TelnetConnectionRequestEvent ev) {
+        telnetConnectRequestHandlerList.add(ev);
     }
 
     public void addTransmitEventHandler(TransmitEvent ev) {
         transmitEventHandlerList.add(ev);
     }
 
-    public void setEditorTab(ConnectionType ct, String source) {
-        
-        PanelEditor editorPanel = getPanelEditor(source);
-        if (editorPanel == null) {
-            editorPanel = new PanelEditor(ct, source);
-            editorPanel.setMinimumSize(new Dimension(300, 400));
-            editorPanelMap.put(source, editorPanel);
-            tabbedPane.addTab(source, editorPanel);
-            editorPanel.addTransmitEventHandler(new TransmitEvent() {
-                @Override
-                public void transmit(ConnectionType t, String source, String text) {
-                    for (TransmitEvent ev : transmitEventHandlerList) {
-                        ev.transmit(t, source, text);
-                    }
-                }
-            });
-            editorPanel.addCloseEventHandler(new ConnectionCloseEvent() {
-                @Override
-                public void close(ConnectionType ct, String source) {
-                    for (ConnectionCloseEvent ev : connectionCloseHandlerList) {
-                        Logger.getAnonymousLogger().log(Level.INFO, "Close Request from editorPanel");
-                        ev.close(ct, source);
-                    }
-                }
-            });
+    public void setEditorTab(ConnectionId id) {
+        ensurePanelEditor(id);
+        int idx = 0;
+        for (idx = 0; idx < tabbedPane.getTabCount(); idx++) {
+            String titleAt = tabbedPane.getTitleAt(idx);
+            if (titleAt.equals(id.toString())) {
+                break;
+            }
         }
-        _connectionSource = source;
-        _connectionType = ct;
-        _currentEditorPanel = editorPanel;
+        tabbedPane.setSelectedIndex(idx);
     }
 
-    public void removeEditorTab(ConnectionType ct, String source) {
+    public void addEditorTab(ConnectionId id) {
+        _currentEditorPanel = new PanelEditor(id);
+        _currentEditorPanel.setMinimumSize(new Dimension(300, 400));
+        editorPanelMap.put(id, _currentEditorPanel);
+        tabbedPane.addTab(id.toString(), _currentEditorPanel);
+        _currentEditorPanel.addTransmitEventHandler(new TransmitEvent() {
+            @Override
+            public void transmit(ConnectionId id, String text) {
+                Logger.getAnonymousLogger().log(Level.INFO, "TransmitRequest from " + id + ": "+text);
+                for (TransmitEvent ev : transmitEventHandlerList) {
+                    ev.transmit(id, text);
+                }
+            }
+        });
+        _currentEditorPanel.addCloseEventHandler(new ConnectionCloseEvent() {
+            @Override
+            public void close(ConnectionId id) {
+                for (ConnectionCloseEvent ev : connectionCloseHandlerList) {
+                    Logger.getAnonymousLogger().log(Level.INFO, "Close Request from editorPanel");
+                    ev.close(id);
+                }
+            }
+        });
+    }
 
-        PanelEditor get = getPanelEditor(source);
+    public void removeEditorTab(ConnectionId id) {
+
+        PanelEditor get = ensurePanelEditor(id);
         if (get != null) {
             tabbedPane.remove(get);
         } else {
-            Logger.getAnonymousLogger().log(Level.SEVERE, "EditorPanel does not contain tab:" + source);
+            Logger.getAnonymousLogger().log(Level.SEVERE, "EditorPanel does not contain tab:" + id);
 
         }
-        editorPanelMap.remove(source);
-        _connectionSource = "No connection";
-        _connectionType = ConnectionType.Undefined;
+        editorPanelMap.remove(id);
+        if (editorPanelMap.isEmpty()) {
+            _currentEditorPanel = null;
+        } else {
+            int i = tabbedPane.getSelectedIndex();
+            if (i != -1) {
+                _currentEditorPanel = (PanelEditor) tabbedPane.getSelectedComponent();
+            }
+        }
     }
 
     public void setConnectionsVisible(boolean b) {
         panelConnections.setVisible(b);
     }
 
-    public void appendResponseText(ConnectionType ct, String source, String text) {
-        PanelEditor editor = getPanelEditor(source);
-        if (editor == null) {
-            Logger.getAnonymousLogger().log(Level.SEVERE, "Unknown source:" + source + ":" + text);
-            setEditorTab(ct, source);
-            
-        }
+    public void appendResponseText(ConnectionId id, String text) {
+        PanelEditor editor = ensurePanelEditor(id);
         _currentEditorPanel.appendText(text);
     }
 
@@ -463,8 +436,8 @@ public class FrameMain extends JFrame {
         panelConnections.clearSerialPortsList();
     }
 
-    public void appendProgramText(ConnectionType _connectionType, String _connectionSource, String string) {
-        appendResponseText(_connectionType, _connectionSource, string);
+    public void appendProgramText(String string) {
+        appendResponseText(_currentEditorPanel.getConnectionId(), string);
     }
 
     public void setPogress(int max, int min, int i) {
@@ -472,7 +445,6 @@ public class FrameMain extends JFrame {
         statusProgressBar.setMinimum(min);
         statusProgressBar.setValue(i);
         statusPanel.invalidate();
-        Thread.yield();
     }
 
     private void addStatusLine() {
@@ -487,11 +459,9 @@ public class FrameMain extends JFrame {
     }
 
     public String getEditorContent() {
-
-        PanelEditor editor = editorPanelMap.get(_connectionSource);
-        if (editor != null) {
-            return editor.getEditorText();
+        if (_currentEditorPanel != null) {
+            return _currentEditorPanel.getEditorText();
         }
-        return ("Could not get editor text");
+        return null;
     }
 }

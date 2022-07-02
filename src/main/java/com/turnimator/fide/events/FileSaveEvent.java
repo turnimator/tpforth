@@ -4,10 +4,12 @@
  */
 package com.turnimator.fide.events;
 
+import com.turnimator.fide.ConnectionId;
+
 /**
  *
  * @author atle
  */
 public abstract class FileSaveEvent {
-    public abstract void save(String source);
+    public abstract void save(ConnectionId id);
 }

@@ -5,9 +5,9 @@
 package com.turnimator.fide.events;
 
 /**
- * source is portID
+ *
  * @author atle
  */
-public abstract class SerialDisconnectEvent {
-    public abstract void disconnect(String source);
+public abstract class ConnectionsDisplayEvent {
+    public abstract void setVisible(boolean b);
 }

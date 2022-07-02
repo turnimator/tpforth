@@ -8,6 +8,7 @@ package com.turnimator.fide.events;
  *
  * @author atle
  */
-public abstract class TelnetConnectionEvent {
-    public abstract void connect(String connectionString, int port);
+public abstract class SerialConnectionRequestEvent {
+    
+    public abstract void connect(String serialPort, int bitRate);
 }

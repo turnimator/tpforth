@@ -4,6 +4,7 @@
  */
 package com.turnimator.fide.view;
 
+import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.events.ConnectionType;
 import com.turnimator.fide.events.TransmitEvent;
@@ -26,17 +27,16 @@ import javax.swing.JScrollPane;
 public class PanelEditor extends JPanel {
     ArrayList<TransmitEvent> transmitHandlerList = new ArrayList<>();
     ArrayList<ConnectionCloseEvent> closeHandlerList = new ArrayList<>();
-    private String _source = "";
-    private ConnectionType _connectionType;
+    
+    private ConnectionId _connectionId;
     
     private JEditorPane editorPane;
     private JLabel replPrompt;
     private TextField replTextfield;
     private JButton closeButton;
     
-    public PanelEditor(ConnectionType ct, String source) {
-        this._source = source;
-        _connectionType = ct;
+    public PanelEditor(ConnectionId id) {
+        _connectionId = id;
         initComponents();
     }
 
@@ -56,7 +56,7 @@ public class PanelEditor extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
              for(TransmitEvent ev: transmitHandlerList){
-                 ev.transmit(_connectionType, _source, replTextfield.getText());
+                 ev.transmit(_connectionId, replTextfield.getText());
              }
             }
         });
@@ -65,7 +65,7 @@ public class PanelEditor extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for(ConnectionCloseEvent ev : closeHandlerList){
-                    ev.close(_connectionType, _source);
+                    ev.close(_connectionId);
                 }
             }
         });
@@ -91,8 +91,8 @@ public class PanelEditor extends JPanel {
         return editorPane.getText();
     }
 
-    public ConnectionType getConnectionTyype() {
-       return _connectionType;
+    public ConnectionId getConnectionId() {
+       return _connectionId;
     }
 
     public String getSelectedText() {

@@ -4,10 +4,12 @@
  */
 package com.turnimator.fide.events;
 
+import com.turnimator.fide.ConnectionId;
+
 /**
  *
  * @author atle
  */
 public abstract class UploadEvent {
-    public abstract void upload(ConnectionType ct, String source, String text);
+    public abstract void upload(ConnectionId id, String text);
 }

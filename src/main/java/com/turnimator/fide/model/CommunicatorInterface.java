@@ -4,19 +4,23 @@
  */
 package com.turnimator.fide.model;
 
+import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ReceiveEvent;
+import java.util.List;
 
 /**
  *
  * @author atle
  */
 public interface CommunicatorInterface {
-    boolean connect(String connectionString);
+    void setHost(String host); // Nor used for serial connections
+    void setPort(String port);
+    ConnectionId connect();
+    ConnectionId getId();
     boolean disconnect();
     boolean send(String s);
     void addReceiveEventHandler(ReceiveEvent evt);
     boolean isOpen();
     String getErrorText();
-    String getSourceId();
-    
+    List<String> getPorts();
 }

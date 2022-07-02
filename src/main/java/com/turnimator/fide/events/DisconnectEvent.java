@@ -4,13 +4,10 @@
  */
 package com.turnimator.fide.events;
 
-import com.turnimator.fide.events.ConnectionType;
-
 /**
- *
+ * source is portID
  * @author atle
  */
-public abstract class SerialConnectionEvent {
-    
-    public abstract void connect(ConnectionType ct, String serialPort, int bitRate);
+public abstract class DisconnectEvent {
+    public abstract void disconnect(String source);
 }

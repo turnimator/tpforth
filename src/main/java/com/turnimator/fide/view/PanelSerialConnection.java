@@ -6,8 +6,8 @@ package com.turnimator.fide.view;
 
 import com.turnimator.fide.events.ConnectionType;
 import com.turnimator.fide.events.RescanEvent;
-import com.turnimator.fide.events.SerialConnectionEvent;
-import com.turnimator.fide.events.SerialDisconnectEvent;
+import com.turnimator.fide.events.SerialConnectionRequestEvent;
+import com.turnimator.fide.events.DisconnectEvent;
 import java.awt.GridLayout;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
@@ -22,8 +22,8 @@ import javax.swing.JComboBox;
  */
 public class PanelSerialConnection extends Panel {
 
-    private final ArrayList<SerialConnectionEvent> serialConnectHandlerList = new ArrayList<>();
-    private final ArrayList<SerialDisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
+    private final ArrayList<SerialConnectionRequestEvent> serialConnectHandlerList = new ArrayList<>();
+    private final ArrayList<DisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
     private final ArrayList<RescanEvent> rescanHandlerList = new ArrayList<>();
     
     private JComboBox<String> commList = new JComboBox<>();
@@ -41,10 +41,10 @@ public class PanelSerialConnection extends Panel {
         jButtonConnect.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (SerialConnectionEvent ev : serialConnectHandlerList) {
+                for (SerialConnectionRequestEvent ev : serialConnectHandlerList) {
                     String s = (String) jComboBoxBitRate.getSelectedItem();
                     Integer i = Integer.parseInt(s);
-                    ev.connect(ConnectionType.Serial, (String) commList.getSelectedItem(), i);
+                    ev.connect((String) commList.getSelectedItem(), i);
                 }
             }
         });
@@ -57,7 +57,7 @@ public class PanelSerialConnection extends Panel {
         jButtonDisconnect.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for(SerialDisconnectEvent ev: serialDisconnectHandlerList){
+                for(DisconnectEvent ev: serialDisconnectHandlerList){
                     ev.disconnect((String) commList.getSelectedItem());
                 }
             }
@@ -88,11 +88,11 @@ public class PanelSerialConnection extends Panel {
         commList.addItem(port);
     }
 
-    public void addConnectionEventHandler(SerialConnectionEvent ev) {
+    public void addConnectionEventHandler(SerialConnectionRequestEvent ev) {
         serialConnectHandlerList.add(ev);
     }
     
-    public void addDisconnectEventHandler(SerialDisconnectEvent ev){
+    public void addDisconnectEventHandler(DisconnectEvent ev){
         serialDisconnectHandlerList.add(ev);
     }
 

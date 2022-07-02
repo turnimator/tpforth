@@ -4,18 +4,18 @@
  */
 package com.turnimator.fide.view;
 
-import com.turnimator.fide.events.TelnetConnectionEvent;
-import com.turnimator.fide.events.TelnetDisconnectEvent;
+import com.turnimator.fide.ConnectionId;
+import com.turnimator.fide.events.ConnectionCloseEvent;
+import com.turnimator.fide.events.ConnectionType;
+import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.text.MaskFormatter;
@@ -25,8 +25,8 @@ import javax.swing.text.MaskFormatter;
  * @author atle
  */
 public class PanelTelnetConnection extends Panel {
-    private final ArrayList<TelnetConnectionEvent> connectionHandlerList = new ArrayList<>();
-    private final ArrayList<TelnetDisconnectEvent> disconnectHandlerList = new ArrayList<>();
+    private final ArrayList<TelnetConnectionRequestEvent> connectionHandlerList = new ArrayList<>();
+    private final ArrayList<ConnectionCloseEvent> disconnectHandlerList = new ArrayList<>();
     JPanel buttonPanel = new JPanel();
     JPanel textPanel = new JPanel();
     
@@ -61,11 +61,11 @@ public class PanelTelnetConnection extends Panel {
         buttonConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for(TelnetConnectionEvent ev:connectionHandlerList){
+                for(TelnetConnectionRequestEvent ev:connectionHandlerList){
                     String text = urlTextField.getText();
                     Logger.getAnonymousLogger().log(Level.INFO, "urlTextField:"+text);
                     int port = Integer.parseInt(portTextField.getText());
-                    ev.connect(text, port);
+                    ev.connect(text, portTextField.getSelectedText());
                 }
             }
         });
@@ -73,8 +73,8 @@ public class PanelTelnetConnection extends Panel {
         buttonDisconnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for(TelnetDisconnectEvent ev:disconnectHandlerList){
-                    ev.disconnect(urlTextField.getText());
+                for(ConnectionCloseEvent ev:disconnectHandlerList){
+                    ev.close(new ConnectionId(ConnectionType.Telnet, urlTextField.getText()));
                 }
             }
         });
@@ -86,11 +86,8 @@ public class PanelTelnetConnection extends Panel {
         
     } 
     
-    public void addConnectionEventHandler(TelnetConnectionEvent ev){
+    public void addConnectionEventHandler(TelnetConnectionRequestEvent ev){
         connectionHandlerList.add(ev);
     }
     
-    public void addDisconnectEventHndler(TelnetDisconnectEvent ev){
-        disconnectHandlerList.add(ev);
-    }
 }
