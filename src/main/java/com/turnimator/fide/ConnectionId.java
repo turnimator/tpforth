@@ -4,7 +4,7 @@
  */
 package com.turnimator.fide;
 
-import com.turnimator.fide.events.ConnectionType;
+import com.turnimator.fide.enums.ConnectionType;
 
 /**
  *
@@ -19,5 +19,9 @@ public class ConnectionId {
     }
     public String toString(){
         return _type.name() + ":" + _connectionString;
+    }
+
+    public ConnectionType getConnectionType() {
+        return _type;
     }
 }

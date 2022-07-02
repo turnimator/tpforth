@@ -2,7 +2,6 @@
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/UploadEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/view/PanelTelnetConnection.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/FileSaveEvent.java
-/home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/ConnectionType.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/FileOpenEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/SerialConnectionRequestEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/model/CommunicatorInterface.java
@@ -12,6 +11,7 @@
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/ConnectionsDisplayEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/ProgressEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/TelnetConnectionRequestEvent.java
+/home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/enums/ConnectionType.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/ReceiveEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/view/FrameMain.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/controller/Controller.java

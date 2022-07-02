@@ -6,7 +6,7 @@
 package com.turnimator.fide.model;
 
 import com.turnimator.fide.ConnectionId;
-import com.turnimator.fide.events.ConnectionType;
+import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
 import java.io.BufferedReader;

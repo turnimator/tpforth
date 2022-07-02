@@ -5,6 +5,7 @@
 package com.turnimator.fide.view;
 
 import com.turnimator.fide.ConnectionId;
+import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.events.ConnectionsDisplayEvent;
 import com.turnimator.fide.events.FileOpenEvent;
@@ -42,6 +43,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
@@ -271,11 +273,14 @@ public class FrameMain extends JFrame {
         buttonUpload.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                PanelEditor get = _currentEditorPanel;
-                String text = "";
-                if (get != null) {
-                    text = get.getEditorText();
+                if (_currentEditorPanel == null) {
+                    return;
                 }
+                if (_currentEditorPanel.getConnectionId().getConnectionType() == ConnectionType.Undefined){
+                    JOptionPane.showMessageDialog(rootPane, "Can't upload without a connection.");
+                    return;
+                }
+                String text = _currentEditorPanel.getEditorText();
                 for (UploadEvent ev : _uploadRequestHandlerList) {
                     ev.upload(_currentEditorPanel.getConnectionId(), text);
                 }
@@ -368,16 +373,19 @@ public class FrameMain extends JFrame {
 
     public void setEditorTab(ConnectionId id) {
         ensurePanelEditor(id);
-        int idx = 0;
-        for (idx = 0; idx < tabbedPane.getTabCount(); idx++) {
+        for (int idx = 0; idx < tabbedPane.getTabCount(); idx++) {
             String titleAt = tabbedPane.getTitleAt(idx);
             if (titleAt.equals(id.toString())) {
+                tabbedPane.setSelectedIndex(idx);
                 break;
             }
         }
-        tabbedPane.setSelectedIndex(idx);
     }
 
+    /**
+     * Set Current editor to id and select corresponding tab
+     * @param id 
+     */
     public void addEditorTab(ConnectionId id) {
         _currentEditorPanel = new PanelEditor(id);
         _currentEditorPanel.setMinimumSize(new Dimension(300, 400));
@@ -386,7 +394,12 @@ public class FrameMain extends JFrame {
         _currentEditorPanel.addTransmitEventHandler(new TransmitEvent() {
             @Override
             public void transmit(ConnectionId id, String text) {
-                Logger.getAnonymousLogger().log(Level.INFO, "TransmitRequest from " + id + ": "+text);
+                if (id.getConnectionType() == ConnectionType.Undefined){
+                    return;
+                } 
+                //Logger.getAnonymousLogger().log(Level.INFO, "TransmitRequest from " + id + ": "+text);
+                // TODO if id.getConnectionType() == ConnectionType.All loop through all entries in map
+                // and call ev.transmit for each one.
                 for (TransmitEvent ev : transmitEventHandlerList) {
                     ev.transmit(id, text);
                 }

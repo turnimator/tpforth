@@ -8,7 +8,7 @@ package com.turnimator.fide.model;
 import com.fazecast.jSerialComm.SerialPort;
 import static com.fazecast.jSerialComm.SerialPort.TIMEOUT_READ_BLOCKING;
 import com.turnimator.fide.ConnectionId;
-import com.turnimator.fide.events.ConnectionType;
+import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
 import java.io.BufferedReader;

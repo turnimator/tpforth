@@ -5,13 +5,14 @@
 package com.turnimator.fide.controller;
 
 import com.turnimator.fide.ConnectionId;
-import com.turnimator.fide.events.ConnectionType;
+import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ReceiveEvent;
 import com.turnimator.fide.model.CommunicatorInterface;
 import com.turnimator.fide.model.SerialCommunicator;
 import com.turnimator.fide.model.TelnetCommunicator;
 import java.util.ArrayList;
 import java.util.HashMap;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -50,6 +51,9 @@ public class CommunicationDispatcher  {
     }
 
     private CommunicatorInterface ensureCommunicator(ConnectionId id){
+        if (id == null) {
+            return null;
+        }
         if (! id.equals(_communicator.getId())){
             _communicator = _communicatorMap.get(id);
         }

@@ -6,7 +6,7 @@ package com.turnimator.fide.controller;
 
 import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionsDisplayEvent;
-import com.turnimator.fide.events.ConnectionType;
+import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.FileOpenEvent;
 import com.turnimator.fide.events.FileSaveEvent;
 import com.turnimator.fide.events.ReceiveEvent;
@@ -91,7 +91,10 @@ public class Controller {
                 lastDirectory = f.getDirectory();
 
                 System.setProperty("LastDir", lastDirectory);
-                frameMain.setConnectionId(_dispatcher.getConnectionId());
+                ConnectionId id = _dispatcher.getConnectionId();
+                if (id != null) {
+                    frameMain.setConnectionId(id);
+                }
                 String file = f.getDirectory() + "/" + f.getFile();
                 try {
                     FileReader fr = new FileReader(file);

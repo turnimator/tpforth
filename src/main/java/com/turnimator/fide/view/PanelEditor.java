@@ -6,7 +6,7 @@ package com.turnimator.fide.view;
 
 import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionCloseEvent;
-import com.turnimator.fide.events.ConnectionType;
+import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.TransmitEvent;
 import java.awt.Dimension;
 import java.awt.TextField;

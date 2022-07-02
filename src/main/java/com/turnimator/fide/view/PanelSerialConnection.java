@@ -4,7 +4,7 @@
  */
 package com.turnimator.fide.view;
 
-import com.turnimator.fide.events.ConnectionType;
+import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.RescanEvent;
 import com.turnimator.fide.events.SerialConnectionRequestEvent;
 import com.turnimator.fide.events.DisconnectEvent;
