@@ -6,6 +6,7 @@ package com.turnimator.fide.view;
 
 import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.enums.ConnectionType;
+import com.turnimator.fide.enums.ResponseOutputType;
 import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.events.ConnectionsDisplayEvent;
 import com.turnimator.fide.events.FileOpenEvent;
@@ -16,9 +17,11 @@ import com.turnimator.fide.events.DisconnectEvent;
 import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
+import com.turnimator.fide.events.WordsRequestEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -48,8 +51,10 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
+import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 /**
  *
@@ -57,7 +62,9 @@ import javax.swing.event.ChangeListener;
  */
 public class FrameMain extends JFrame {
 
-    private final HashMap<ConnectionId, PanelEditor> editorPanelMap = new HashMap<>();
+    private ResponseOutputType _responseOutputType = ResponseOutputType.Editor;
+
+    private final HashMap<ConnectionId, PanelEditor> _editorPanelMap = new HashMap<>();
     private PanelEditor _currentEditorPanel = null;
 
     String slash = System.getProperty("file.separator");
@@ -65,33 +72,48 @@ public class FrameMain extends JFrame {
     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     DataFlavor dataFlavor = DataFlavor.stringFlavor;
 
-    private ArrayList<SerialConnectionRequestEvent> serialConnectRequestHandlerList = new ArrayList<>();
-    private ArrayList<DisconnectEvent> disconnectHandlerList = new ArrayList<>();
-    private ArrayList<TelnetConnectionRequestEvent> telnetConnectRequestHandlerList = new ArrayList<>();
+    private ArrayList<SerialConnectionRequestEvent> _serialConnectRequestHandlerList = new ArrayList<>();
+    private ArrayList<DisconnectEvent> _disconnectHandlerList = new ArrayList<>();
+    private ArrayList<TelnetConnectionRequestEvent> _telnetConnectRequestHandlerList = new ArrayList<>();
 
-    private final ArrayList<ConnectionsDisplayEvent> connectionDisplayHandlerList = new ArrayList<>();
-    private final ArrayList<TransmitEvent> transmitEventHandlerList = new ArrayList<>();
-    private final ArrayList<ConnectionCloseEvent> connectionCloseHandlerList = new ArrayList<>();
-    private final ArrayList<RescanEvent> rescanHandlerList = new ArrayList<>();
+    private final ArrayList<ConnectionsDisplayEvent> _connectionDisplayHandlerList = new ArrayList<>();
+    private final ArrayList<TransmitEvent> _transmitEventHandlerList = new ArrayList<>();
+    private final ArrayList<ConnectionCloseEvent> _connectionCloseHandlerList = new ArrayList<>();
+    private final ArrayList<RescanEvent> _rescanHandlerList = new ArrayList<>();
 
-    private final ArrayList<FileOpenEvent> fileOpenHandlerList = new ArrayList<>();
+    private final ArrayList<WordsRequestEvent> _wordsRequestHandlerList = new ArrayList<>();
+
+    public void addWordsRequestHandler(WordsRequestEvent ev) {
+        _wordsRequestHandlerList.add(ev);
+    }
+
+    public void bubbleWordsRequest(ConnectionId id) {
+        for (WordsRequestEvent ev : _wordsRequestHandlerList) {
+            ev.requestWords(id);
+        }
+    }
+
+    private final ArrayList<FileOpenEvent> _fileOpenHandlerList = new ArrayList<>();
     private final ArrayList<UploadEvent> _uploadRequestHandlerList = new ArrayList<>();
-    private final ArrayList<FileSaveEvent> fileSaveHandlerList = new ArrayList<>();
+    private final ArrayList<FileSaveEvent> _fileSaveHandlerList = new ArrayList<>();
 
     private final JMenuBar menuBar = new JMenuBar();
     private final JMenu menuFile = new JMenu("File");
     private final JMenu menuEdit = new JMenu("Edit");
-    private final JToolBar toolBar = new JToolBar("ToolBar", JToolBar.HORIZONTAL);
-    private final JPanel panel = new JPanel();
-    private final PanelConnections panelConnections = new PanelConnections();
-    private final JTabbedPane tabbedPane = new JTabbedPane();
-    private final JPanel statusPanel = new JPanel();
-    private final JLabel statusLabel = new JLabel();
-    private final JProgressBar statusProgressBar = new JProgressBar();
-
+    private final JToolBar _toolBar = new JToolBar("ToolBar", JToolBar.HORIZONTAL);
+    private final JPanel _mainPanel = new JPanel();
+    private final JPanel _mainPanelLeft = new JPanel();
+     private final JPanel _mainPanelRight = new JPanel();
+    private final PanelConnections _panelConnections = new PanelConnections();
+    private final JTabbedPane _tabbedEditorPane = new JTabbedPane();
+    private final JPanel _statusPanel = new JPanel();
+    private final JLabel _statusLabel = new JLabel();
+    private final JProgressBar _statusProgressBar = new JProgressBar();
+    private final PanelWords _panelWords = new PanelWords();
+    
     private PanelEditor ensurePanelEditor(ConnectionId id) {
         if (!id.equals(_currentEditorPanel.getConnectionId())) {
-            _currentEditorPanel = editorPanelMap.get(id);
+            _currentEditorPanel = _editorPanelMap.get(id);
         }
         return _currentEditorPanel;
     }
@@ -105,37 +127,37 @@ public class FrameMain extends JFrame {
         setTitle("Fide Forth IDE");
         initComponents();
         setVisible(true);
-        panelConnections.setVisible(false);
-        panelConnections.addSerialConnectionEventHandler(new SerialConnectionRequestEvent() {
+        _panelConnections.setVisible(false);
+        _panelConnections.addSerialConnectionEventHandler(new SerialConnectionRequestEvent() {
             @Override
             public void connect(String serialPort, int bitRate) {
-                for (SerialConnectionRequestEvent ev : serialConnectRequestHandlerList) {
+                for (SerialConnectionRequestEvent ev : _serialConnectRequestHandlerList) {
                     ev.connect(serialPort, bitRate);
                 }
             }
         });
 
-        panelConnections.addDisconnectEventHandler(new DisconnectEvent() {
+        _panelConnections.addDisconnectEventHandler(new DisconnectEvent() {
             @Override
             public void disconnect(String source) {
-                for (DisconnectEvent ev : disconnectHandlerList) {
+                for (DisconnectEvent ev : _disconnectHandlerList) {
                     ev.disconnect(source);
                 }
             }
         });
-        panelConnections.addRescanHandler(new RescanEvent() {
+        _panelConnections.addRescanHandler(new RescanEvent() {
             @Override
             public void rescan() {
-                for (RescanEvent ev : rescanHandlerList) {
+                for (RescanEvent ev : _rescanHandlerList) {
                     ev.rescan();
                 }
             }
         });
 
-        panelConnections.addTelnetConnectionHandler(new TelnetConnectionRequestEvent() {
+        _panelConnections.addTelnetConnectionHandler(new TelnetConnectionRequestEvent() {
             @Override
             public void connect(String host, String port) {
-                for (TelnetConnectionRequestEvent ev : telnetConnectRequestHandlerList) {
+                for (TelnetConnectionRequestEvent ev : _telnetConnectRequestHandlerList) {
                     ev.connect(host, port);
                 }
             }
@@ -148,7 +170,7 @@ public class FrameMain extends JFrame {
         JMenuItem itemNew = menuFile.add(new AbstractAction("New") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (ConnectionsDisplayEvent ev : connectionDisplayHandlerList) {
+                for (ConnectionsDisplayEvent ev : _connectionDisplayHandlerList) {
                     ev.setVisible(true);
                 }
             }
@@ -156,7 +178,7 @@ public class FrameMain extends JFrame {
         JMenuItem itemOpen = menuFile.add(new AbstractAction("Open") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (FileOpenEvent ev : fileOpenHandlerList) {
+                for (FileOpenEvent ev : _fileOpenHandlerList) {
                     ev.open();
                 }
             }
@@ -165,7 +187,7 @@ public class FrameMain extends JFrame {
         JMenuItem itemSave = menuFile.add(new AbstractAction("Save") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (FileSaveEvent ev : fileSaveHandlerList) {
+                for (FileSaveEvent ev : _fileSaveHandlerList) {
                     ev.save(_currentEditorPanel.getConnectionId());
                 }
             }
@@ -255,18 +277,18 @@ public class FrameMain extends JFrame {
 
         System.out.println("Icon_path: " + icon_path);
 
-        add(toolBar, BorderLayout.PAGE_START);
+        add(_toolBar, BorderLayout.PAGE_START);
         JButton buttonConnect = new JButton(new ImageIcon(icon_path + "devices" + slash + "modem-symbolic.symbolic.png"));
         buttonConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (ConnectionsDisplayEvent ev : connectionDisplayHandlerList) {
-                    ev.setVisible(!panelConnections.isVisible());
+                for (ConnectionsDisplayEvent ev : _connectionDisplayHandlerList) {
+                    ev.setVisible(!_panelConnections.isVisible());
                 }
             }
         });
         buttonConnect.setToolTipText("Connect to Forth");
-        toolBar.add(buttonConnect);
+        _toolBar.add(buttonConnect);
 
         JButton buttonUpload = new JButton(new ImageIcon(icon_path + "actions" + slash + "document-send-symbolic.symbolic.png"));
         buttonUpload.setToolTipText("Upload Forth code");
@@ -276,7 +298,7 @@ public class FrameMain extends JFrame {
                 if (_currentEditorPanel == null) {
                     return;
                 }
-                if (_currentEditorPanel.getConnectionId().getConnectionType() == ConnectionType.Undefined){
+                if (_currentEditorPanel.getConnectionId().getConnectionType() == ConnectionType.None) {
                     JOptionPane.showMessageDialog(rootPane, "Can't upload without a connection.");
                     return;
                 }
@@ -286,41 +308,73 @@ public class FrameMain extends JFrame {
                 }
             }
         });
-        toolBar.add(buttonUpload);
+        _toolBar.add(buttonUpload);
 
         JButton buttonWords = new JButton("W");
+        buttonWords.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                bubbleWordsRequest(_currentEditorPanel.getConnectionId());
+            }
+        });
         buttonWords.setToolTipText("Retrieve list of Forth WORDS");
-        toolBar.add(buttonWords);
-        toolBar.setVisible(true);
+        _toolBar.add(buttonWords);
+        _toolBar.setVisible(true);
 
     }
 
     private void initComponents() {
-
+        
         setMinimumSize(new Dimension(600, 300));
         addMenu();
         addToolBar();
 
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(panelConnections);
-        panelConnections.setMaximumSize(new Dimension(300, 180));
-        panelConnections.setVisible(true);
-        panel.add(tabbedPane);
-        tabbedPane.setVisible(true);
-        tabbedPane.addChangeListener(new ChangeListener() {
+        _mainPanel.setLayout(new BoxLayout(_mainPanel, BoxLayout.X_AXIS)); // Left panel and right panel
+        
+    
+        _mainPanel.add(_mainPanelLeft);
+        _mainPanel.add(_mainPanelRight);
+        
+        _mainPanelLeft.setBorder(new BevelBorder(BevelBorder.LOWERED));
+        _mainPanelLeft.setLayout(new BoxLayout(_mainPanelLeft, BoxLayout.Y_AXIS));
+        _mainPanelLeft.setAlignmentX(TOP_ALIGNMENT);
+        
+        _mainPanelLeft.add(_panelConnections); // 1
+        
+        
+        _panelConnections.setVisible(true);
+        
+        _mainPanelLeft.add(_tabbedEditorPane); // 2
+        
+        
+        _tabbedEditorPane.setVisible(true);
+        _tabbedEditorPane.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                int selectedIndex = tabbedPane.getSelectedIndex();
+                int selectedIndex = _tabbedEditorPane.getSelectedIndex();
                 if (selectedIndex < 0) {
                     return;
                 }
                 // Logger.getAnonymousLogger().log(Level.INFO, "Tab source " + _connectionSource);
-                _currentEditorPanel = (PanelEditor) tabbedPane.getComponentAt(selectedIndex);
-                
+                _currentEditorPanel = (PanelEditor) _tabbedEditorPane.getComponentAt(selectedIndex);
+
             }
         });
-        this.add(panel);
-        addStatusLine();
+        
+        _mainPanelRight.setBorder(new BevelBorder(BevelBorder.LOWERED));
+        _mainPanelRight.add(_panelWords);
+        
+        
+        _statusPanel.setLayout(new FlowLayout());
+        _statusPanel.setMaximumSize(new Dimension(600, 64));
+        _statusLabel.setAlignmentX(LEFT_ALIGNMENT);
+        _statusPanel.add(_statusLabel);
+        _statusPanel.add(_statusProgressBar);
+        _statusPanel.setAlignmentY(BOTTOM_ALIGNMENT);
+        _mainPanelLeft.add(_statusPanel);
+    
+        this.add(_mainPanel);
+    
     }
 
     public void addUploadRequestHandler(UploadEvent ev) {
@@ -332,51 +386,51 @@ public class FrameMain extends JFrame {
     }
 
     public void addFileOpenHandler(FileOpenEvent ev) {
-        fileOpenHandlerList.add(ev);
+        _fileOpenHandlerList.add(ev);
     }
 
     public void addFileSaveHandler(FileSaveEvent ev) {
-        fileSaveHandlerList.add(ev);
+        _fileSaveHandlerList.add(ev);
     }
 
     public void addRescanHandler(RescanEvent ev) {
-        rescanHandlerList.add(ev);
+        _rescanHandlerList.add(ev);
     }
 
     public void addConnectionCloseEventHandler(ConnectionCloseEvent ev) {
-        connectionCloseHandlerList.add(ev);
+        _connectionCloseHandlerList.add(ev);
     }
 
     public void addDisplayConnectionsRequestHandler(ConnectionsDisplayEvent ev) {
-        connectionDisplayHandlerList.add(ev);
+        _connectionDisplayHandlerList.add(ev);
     }
 
     public void addSerialPortToList(String s) {
-        panelConnections.addSerialPortToList(s);
+        _panelConnections.addSerialPortToList(s);
     }
 
     public void addSerialConnectionRequestHandler(SerialConnectionRequestEvent ev) {
-        serialConnectRequestHandlerList.add(ev);
+        _serialConnectRequestHandlerList.add(ev);
     }
 
     public void addDisconnectEventHandler(DisconnectEvent ev) {
-        disconnectHandlerList.add(ev);
+        _disconnectHandlerList.add(ev);
     }
 
     public void addTelnetConnectionRequestHandler(TelnetConnectionRequestEvent ev) {
-        telnetConnectRequestHandlerList.add(ev);
+        _telnetConnectRequestHandlerList.add(ev);
     }
 
     public void addTransmitEventHandler(TransmitEvent ev) {
-        transmitEventHandlerList.add(ev);
+        _transmitEventHandlerList.add(ev);
     }
 
     public void setEditorTab(ConnectionId id) {
         ensurePanelEditor(id);
-        for (int idx = 0; idx < tabbedPane.getTabCount(); idx++) {
-            String titleAt = tabbedPane.getTitleAt(idx);
+        for (int idx = 0; idx < _tabbedEditorPane.getTabCount(); idx++) {
+            String titleAt = _tabbedEditorPane.getTitleAt(idx);
             if (titleAt.equals(id.toString())) {
-                tabbedPane.setSelectedIndex(idx);
+                _tabbedEditorPane.setSelectedIndex(idx);
                 break;
             }
         }
@@ -384,21 +438,26 @@ public class FrameMain extends JFrame {
 
     /**
      * Set Current editor to id and select corresponding tab
-     * @param id 
+     *
+     * @param id
      */
     public void addEditorTab(ConnectionId id) {
+        if (id == null) {
+            throw new NullPointerException("ConnectionId is null");
+        }
+
         _currentEditorPanel = new PanelEditor(id);
-        _currentEditorPanel.setMinimumSize(new Dimension(300, 400));
-        editorPanelMap.put(id, _currentEditorPanel);
-        tabbedPane.addTab(id.toString(), _currentEditorPanel);
+        _currentEditorPanel.setMinimumSize(new Dimension(600, 400));
+        _editorPanelMap.put(id, _currentEditorPanel);
+        _tabbedEditorPane.addTab(id.toString(), _currentEditorPanel);
         _currentEditorPanel.addTransmitEventHandler(new TransmitEvent() {
             @Override
             public void transmit(ConnectionId id, String text) {
-                if (id.getConnectionType() == ConnectionType.Undefined){
+                if (id.getConnectionType() == ConnectionType.None) {
                     return;
-                } 
-                
-                for (TransmitEvent ev : transmitEventHandlerList) {
+                }
+
+                for (TransmitEvent ev : _transmitEventHandlerList) {
                     ev.transmit(id, text);
                 }
             }
@@ -406,7 +465,7 @@ public class FrameMain extends JFrame {
         _currentEditorPanel.addCloseEventHandler(new ConnectionCloseEvent() {
             @Override
             public void close(ConnectionId id) {
-                for (ConnectionCloseEvent ev : connectionCloseHandlerList) {
+                for (ConnectionCloseEvent ev : _connectionCloseHandlerList) {
                     Logger.getAnonymousLogger().log(Level.INFO, "Close Request from editorPanel");
                     ev.close(id);
                 }
@@ -418,33 +477,39 @@ public class FrameMain extends JFrame {
 
         PanelEditor get = ensurePanelEditor(id);
         if (get != null) {
-            tabbedPane.remove(get);
+            _tabbedEditorPane.remove(get);
         } else {
             Logger.getAnonymousLogger().log(Level.SEVERE, "EditorPanel does not contain tab:" + id);
 
         }
-        editorPanelMap.remove(id);
-        if (editorPanelMap.isEmpty()) {
+        _editorPanelMap.remove(id);
+        if (_editorPanelMap.isEmpty()) {
             _currentEditorPanel = null;
         } else {
-            int i = tabbedPane.getSelectedIndex();
+            int i = _tabbedEditorPane.getSelectedIndex();
             if (i != -1) {
-                _currentEditorPanel = (PanelEditor) tabbedPane.getSelectedComponent();
+                _currentEditorPanel = (PanelEditor) _tabbedEditorPane.getSelectedComponent();
             }
         }
     }
 
     public void setConnectionsVisible(boolean b) {
-        panelConnections.setVisible(b);
+        _panelConnections.setVisible(b);
     }
 
     public void appendResponseText(ConnectionId id, String text) {
-        PanelEditor editor = ensurePanelEditor(id);
-        _currentEditorPanel.appendText(text);
+        ensurePanelEditor(id);
+        switch (_responseOutputType) {
+            case Editor:
+                _currentEditorPanel.appendText(text);
+                break;
+            case Words:
+                
+        }
     }
 
     public void clearSerialPortList() {
-        panelConnections.clearSerialPortsList();
+        _panelConnections.clearSerialPortsList();
     }
 
     public void appendProgramText(String string) {
@@ -452,21 +517,20 @@ public class FrameMain extends JFrame {
     }
 
     public void setPogress(int max, int min, int i) {
-        statusProgressBar.setMaximum(max);
-        statusProgressBar.setMinimum(min);
-        statusProgressBar.setValue(i);
-        statusPanel.invalidate();
+        _statusProgressBar.setMaximum(max);
+        _statusProgressBar.setMinimum(min);
+        _statusProgressBar.setValue(i);
+        _statusPanel.invalidate();
     }
 
-    private void addStatusLine() {
-        statusPanel.setLayout(new FlowLayout());
-        statusPanel.add(statusLabel);
-        statusPanel.add(statusProgressBar);
-        panel.add(statusPanel);
-    }
+    
 
     public void setStatus(String status) {
-        statusLabel.setText(status);
+        _statusLabel.setText(status);
+    }
+
+    public void setOutputType(ResponseOutputType t) {
+        _responseOutputType = t;
     }
 
     public String getEditorContent() {

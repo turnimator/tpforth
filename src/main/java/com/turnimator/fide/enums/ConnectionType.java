@@ -9,4 +9,4 @@ package com.turnimator.fide.enums;
  * @author atle
  */
 
-    public enum ConnectionType { Undefined, Serial, Telnet, All};
+    public enum ConnectionType { None, Serial, Telnet, All};

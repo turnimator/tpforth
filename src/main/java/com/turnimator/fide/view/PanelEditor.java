@@ -44,9 +44,9 @@ public class PanelEditor extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         
         editorPane = new JEditorPane("", "");
-        editorPane.setMinimumSize(new Dimension(300, 400));
+        
         JScrollPane scrollPane = new JScrollPane(editorPane);
-        scrollPane.setMinimumSize(new Dimension(400, 300));
+        
         add(scrollPane);
         replPrompt = new JLabel("REPL");
         add(replPrompt);

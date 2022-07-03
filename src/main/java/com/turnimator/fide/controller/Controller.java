@@ -15,6 +15,7 @@ import com.turnimator.fide.events.SerialConnectionRequestEvent;
 import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
+import com.turnimator.fide.events.WordsRequestEvent;
 import com.turnimator.fide.view.FrameMain;
 import java.awt.FileDialog;
 import static java.awt.FileDialog.LOAD;
@@ -52,7 +53,7 @@ public class Controller {
             }
         });
         scanPorts();
-        frameMain.addEditorTab(new ConnectionId(ConnectionType.Undefined, "Scratchpad"));
+        frameMain.addEditorTab(new ConnectionId(ConnectionType.None, "Scratchpad"));
     }
 
     void scanPorts() {
@@ -210,6 +211,15 @@ public class Controller {
             @Override
             public void upload(ConnectionId id, String text) {
                 _dispatcher.send(id, text);
+            }
+        });
+        /**
+         * Listening for clicks on the W toolbar icon
+         */
+        frameMain.addWordsRequestHandler(new WordsRequestEvent() {
+            @Override
+            public void requestWords(ConnectionId id) {
+                
             }
         });
         /**
