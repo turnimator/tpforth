@@ -22,7 +22,6 @@ import com.turnimator.fide.events.WordsRequestEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -55,7 +54,6 @@ import javax.swing.JToolBar;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 /**
  *
@@ -104,14 +102,14 @@ public class FrameMain extends JFrame {
     private final JToolBar _toolBar = new JToolBar("ToolBar", JToolBar.HORIZONTAL);
     private final JPanel _mainPanel = new JPanel();
     private final JPanel _mainPanelLeft = new JPanel();
-     private final JPanel _mainPanelRight = new JPanel();
+    private final JPanel _mainPanelRight = new JPanel();
     private final PanelConnections _panelConnections = new PanelConnections();
     private final JTabbedPane _tabbedEditorPane = new JTabbedPane();
     private final JPanel _statusPanel = new JPanel();
     private final JLabel _statusLabel = new JLabel();
     private final JProgressBar _statusProgressBar = new JProgressBar();
-    private final PanelWords _panelWords = new PanelWords();
-    
+    private final PanelWords _panelWords;
+
     private PanelEditor ensurePanelEditor(ConnectionId id) {
         if (!id.equals(_currentEditorPanel.getConnectionId())) {
             _currentEditorPanel = _editorPanelMap.get(id);
@@ -124,6 +122,7 @@ public class FrameMain extends JFrame {
      * HANDLER FOR EACH CONNECTION
      */
     public FrameMain() {
+        this._panelWords = new PanelWords();
         //super();
         setTitle("Fide Forth IDE");
         initComponents();
@@ -325,29 +324,26 @@ public class FrameMain extends JFrame {
     }
 
     private void initComponents() {
-        
+
         setMinimumSize(new Dimension(600, 300));
         addMenu();
         addToolBar();
 
         _mainPanel.setLayout(new BoxLayout(_mainPanel, BoxLayout.X_AXIS)); // Left panel and right panel
-        
-    
+
         _mainPanel.add(_mainPanelLeft);
         _mainPanel.add(_mainPanelRight);
-        
+
         _mainPanelLeft.setBorder(new BevelBorder(BevelBorder.LOWERED));
         _mainPanelLeft.setLayout(new BoxLayout(_mainPanelLeft, BoxLayout.Y_AXIS));
         _mainPanelLeft.setAlignmentX(TOP_ALIGNMENT);
-        
+
         _mainPanelLeft.add(_panelConnections); // 1
-        
-        
+
         _panelConnections.setVisible(true);
-        
+
         _mainPanelLeft.add(_tabbedEditorPane); // 2
-        
-        
+
         _tabbedEditorPane.setVisible(true);
         _tabbedEditorPane.addChangeListener(new ChangeListener() {
             @Override
@@ -361,7 +357,7 @@ public class FrameMain extends JFrame {
 
             }
         });
-        
+
         _mainPanelRight.setBorder(new BevelBorder(BevelBorder.LOWERED));
         _panelWords.addWordClickHandleer(new WordClickEvent() {
             @Override
@@ -370,8 +366,7 @@ public class FrameMain extends JFrame {
             }
         });
         _mainPanelRight.add(_panelWords);
-        
-        
+
         _statusPanel.setLayout(new FlowLayout());
         _statusPanel.setMaximumSize(new Dimension(600, 64));
         _statusLabel.setAlignmentX(LEFT_ALIGNMENT);
@@ -379,9 +374,9 @@ public class FrameMain extends JFrame {
         _statusPanel.add(_statusProgressBar);
         _statusPanel.setAlignmentY(BOTTOM_ALIGNMENT);
         _mainPanelLeft.add(_statusPanel);
-    
+
         this.add(_mainPanel);
-    
+
     }
 
     public void addUploadRequestHandler(UploadEvent ev) {
@@ -511,7 +506,14 @@ public class FrameMain extends JFrame {
                 _currentEditorPanel.appendText(text);
                 break;
             case Words:
-                
+                _panelWords.addWords(text);
+                _panelWords.setVisible(true);
+                if (text.length() < 10 && text.contains("ok")) {
+                    _responseOutputType = ResponseOutputType.Editor;
+                    _currentEditorPanel.appendText(text);
+                }
+                break;
+
         }
     }
 
@@ -529,8 +531,6 @@ public class FrameMain extends JFrame {
         _statusProgressBar.setValue(i);
         _statusPanel.invalidate();
     }
-
-    
 
     public void setStatus(String status) {
         _statusLabel.setText(status);

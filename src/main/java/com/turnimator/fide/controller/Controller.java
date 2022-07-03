@@ -7,6 +7,7 @@ package com.turnimator.fide.controller;
 import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionsDisplayEvent;
 import com.turnimator.fide.enums.ConnectionType;
+import com.turnimator.fide.enums.ResponseOutputType;
 import com.turnimator.fide.events.FileOpenEvent;
 import com.turnimator.fide.events.FileSaveEvent;
 import com.turnimator.fide.events.ReceiveEvent;
@@ -34,40 +35,39 @@ import javax.swing.JOptionPane;
  * @author atle
  */
 public class Controller {
-
     String lastDirectory = ".";
-    FrameMain frameMain;
+    FrameMain _frameMain;
     CommunicationDispatcher _dispatcher = new CommunicationDispatcher();
-
+    
     public Controller() {
         lastDirectory = System.getProperty("LastDir");
 
-        frameMain = new FrameMain();
+        _frameMain = new FrameMain();
         addEventHandlers();
-        frameMain.setVisible(true);
+        _frameMain.setVisible(true);
         _dispatcher.createCommunicator(ConnectionType.Serial, "", "");
         _dispatcher.addReceiveEventHandler(new ReceiveEvent() {
             @Override
             public void receive(ConnectionId id, String text) {
-                frameMain.appendResponseText(id, text);
+                _frameMain.appendResponseText(id, text);
             }
         });
         scanPorts();
-        frameMain.addEditorTab(new ConnectionId(ConnectionType.None, "Scratchpad"));
+        _frameMain.addEditorTab(new ConnectionId(ConnectionType.None, "Scratchpad"));
     }
 
     void scanPorts() {
-        frameMain.clearSerialPortList();
+        _frameMain.clearSerialPortList();
         for (String s : _dispatcher.getPorts()) {
-            frameMain.addSerialPortToList(s);
+            _frameMain.addSerialPortToList(s);
         }
     }
 
     private void addFileEventHandlers() {
-        frameMain.addFileOpenHandler(new FileOpenEvent() {
+        _frameMain.addFileOpenHandler(new FileOpenEvent() {
             @Override
             public void open() {
-                FileDialog f = new FileDialog(frameMain, "Open", LOAD);
+                FileDialog f = new FileDialog(_frameMain, "Open", LOAD);
                 f.setDirectory(lastDirectory);
                 f.setFilenameFilter(new FilenameFilter() {
                     @Override
@@ -94,7 +94,7 @@ public class Controller {
                 System.setProperty("LastDir", lastDirectory);
                 ConnectionId id = _dispatcher.getConnectionId();
                 if (id != null) {
-                    frameMain.setConnectionId(id);
+                    _frameMain.setConnectionId(id);
                 }
                 String file = f.getDirectory() + "/" + f.getFile();
                 try {
@@ -102,24 +102,24 @@ public class Controller {
                     BufferedReader br = new BufferedReader(fr);
                     Stream<String> lines = br.lines();
                     for (Object o : lines.toArray()) {
-                        frameMain.appendProgramText((String) o);
+                        _frameMain.appendProgramText((String) o);
                     }
                     try {
                         fr.close();
                     } catch (IOException ex) {
-                        JOptionPane.showMessageDialog(frameMain, ex.toString());
+                        JOptionPane.showMessageDialog(_frameMain, ex.toString());
                     }
                 } catch (FileNotFoundException ex) {
-                    JOptionPane.showMessageDialog(frameMain, "File not found");
+                    JOptionPane.showMessageDialog(_frameMain, "File not found");
                 }
 
             }
         });
 
-        frameMain.addFileSaveHandler(new FileSaveEvent() {
+        _frameMain.addFileSaveHandler(new FileSaveEvent() {
             @Override
             public void save(ConnectionId source) {
-                FileDialog f = new FileDialog(frameMain, "Open", FileDialog.SAVE);
+                FileDialog f = new FileDialog(_frameMain, "Open", FileDialog.SAVE);
                 f.setDirectory(lastDirectory);
                 f.setFilenameFilter(new FilenameFilter() {
                     @Override
@@ -148,12 +148,12 @@ public class Controller {
                 String file = f.getDirectory() + "/" + f.getFile();
                 try {
                     PrintWriter pw = new PrintWriter(file);
-                    String s = frameMain.getEditorContent();
+                    String s = _frameMain.getEditorContent();
                     pw.println(s);
                     pw.flush();
                     pw.close();
                 } catch (FileNotFoundException ex) {
-                    frameMain.setStatus(ex.toString());
+                    _frameMain.setStatus(ex.toString());
                 }
 
             }
@@ -162,13 +162,13 @@ public class Controller {
     }
 
     private void addConnectionEventHandlers() {
-        frameMain.addRescanHandler(new RescanEvent() {
+        _frameMain.addRescanHandler(new RescanEvent() {
             @Override
             public void rescan() {
                 scanPorts();
             }
         });
-        frameMain.addTelnetConnectionRequestHandler(new TelnetConnectionRequestEvent() {
+        _frameMain.addTelnetConnectionRequestHandler(new TelnetConnectionRequestEvent() {
             @Override
             public void connect(String host, String port) {
                 /**
@@ -177,28 +177,28 @@ public class Controller {
                 _dispatcher.createCommunicator(ConnectionType.Telnet, host, port);
                 ConnectionId connectionId = _dispatcher.connect();
                 if (connectionId == null) {
-                    JOptionPane.showMessageDialog(frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
+                    JOptionPane.showMessageDialog(_frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
                     return;
                 }
-                frameMain.setConnectionsVisible(false);
-                frameMain.addEditorTab(connectionId);
-                frameMain.setEditorTab(connectionId);
+                _frameMain.setConnectionsVisible(false);
+                _frameMain.addEditorTab(connectionId);
+                _frameMain.setEditorTab(connectionId);
             }
         });
 
-        frameMain.addSerialConnectionRequestHandler(new SerialConnectionRequestEvent() {
+        _frameMain.addSerialConnectionRequestHandler(new SerialConnectionRequestEvent() {
 
             @Override
             public void connect(String port, int bitRate) {
                 _dispatcher.createCommunicator(ConnectionType.Serial, "", port);
                 ConnectionId connectionId = _dispatcher.connect();
                 if (connectionId == null) {
-                    JOptionPane.showMessageDialog(frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
+                    JOptionPane.showMessageDialog(_frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
                     return;
                 }
-                frameMain.setConnectionsVisible(false);
-                frameMain.addEditorTab(connectionId);
-                frameMain.setEditorTab(connectionId);
+                _frameMain.setConnectionsVisible(false);
+                _frameMain.addEditorTab(connectionId);
+                _frameMain.setEditorTab(connectionId);
             }
         });
 
@@ -207,7 +207,7 @@ public class Controller {
     private void addEventHandlers() {
         addFileEventHandlers();
         addConnectionEventHandlers();
-        frameMain.addUploadRequestHandler(new UploadEvent() {
+        _frameMain.addUploadRequestHandler(new UploadEvent() {
             @Override
             public void upload(ConnectionId id, String text) {
                 _dispatcher.send(id, text);
@@ -216,23 +216,24 @@ public class Controller {
         /**
          * Listening for clicks on the W toolbar icon
          */
-        frameMain.addWordsRequestHandler(new WordsRequestEvent() {
+        _frameMain.addWordsRequestHandler(new WordsRequestEvent() {
             @Override
             public void requestWords(ConnectionId id) {
-                
+                _frameMain.setOutputType(ResponseOutputType.Words);
+                _dispatcher.send(id, "words");
             }
         });
         /**
          * This is called in response to a click on the Connection toolbar or
          * menu
          */
-        frameMain.addDisplayConnectionsRequestHandler(new ConnectionsDisplayEvent() {
+        _frameMain.addDisplayConnectionsRequestHandler(new ConnectionsDisplayEvent() {
             @Override
             public void setVisible(boolean b) {
-                frameMain.setConnectionsVisible(b);
+                _frameMain.setConnectionsVisible(b);
             }
         });
-        frameMain.addTransmitEventHandler(new TransmitEvent() {
+        _frameMain.addTransmitEventHandler(new TransmitEvent() {
             @Override
             public void transmit(ConnectionId id, String text) {
                 _dispatcher.send(id, text);

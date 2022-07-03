@@ -11,6 +11,7 @@ import com.turnimator.fide.events.DisconnectEvent;
 import java.awt.GridLayout;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
@@ -26,10 +27,10 @@ public class PanelSerialConnection extends Panel {
     private final ArrayList<DisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
     private final ArrayList<RescanEvent> rescanHandlerList = new ArrayList<>();
     
-    private JComboBox<String> commList = new JComboBox<>();
+    private final JComboBox<String> _commList = new JComboBox<>();
     private JComboBox<String> jComboBoxBitRate;
-    private JButton jButtonConnect;
-    private JButton jButtonDisconnect;
+    private JButton _buttonConnect;
+    private JButton _disconnectButton;
     private JButton jButtonRescan;
 
     public PanelSerialConnection() {
@@ -37,31 +38,42 @@ public class PanelSerialConnection extends Panel {
     }
 
     private void initComponents() {
-        jButtonConnect = new JButton("Connect");
-        jButtonConnect.addActionListener(new AbstractAction() {
+        _buttonConnect = new JButton("Connect");
+        _buttonConnect.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for (SerialConnectionRequestEvent ev : serialConnectHandlerList) {
                     String s = (String) jComboBoxBitRate.getSelectedItem();
                     Integer i = Integer.parseInt(s);
-                    ev.connect((String) commList.getSelectedItem(), i);
+                    ev.connect((String) _commList.getSelectedItem(), i);
+                    _disconnectButton.setEnabled(true);
                 }
             }
         });
-
+        _buttonConnect.setEnabled(false);
+        
+        _commList.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Thread.yield();
+                _buttonConnect.setEnabled(true);
+            }
+        });
         jComboBoxBitRate = new JComboBox<>();
         jComboBoxBitRate.addItem("115200");
         jComboBoxBitRate.addItem("9600");
 
-        jButtonDisconnect = new JButton("Disconnect");
-        jButtonDisconnect.addActionListener(new AbstractAction() {
+        _disconnectButton = new JButton("Disconnect");
+        _disconnectButton.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for(DisconnectEvent ev: serialDisconnectHandlerList){
-                    ev.disconnect((String) commList.getSelectedItem());
+                    ev.disconnect((String) _commList.getSelectedItem());
                 }
             }
         });
+        _disconnectButton.setEnabled(false);
+        
         jButtonRescan = new JButton("Rescan");
         jButtonRescan.addActionListener(new AbstractAction() {
             @Override
@@ -73,10 +85,10 @@ public class PanelSerialConnection extends Panel {
         });
         setLayout(new GridLayout(3, 4));
 
-        add(commList);
+        add(_commList);
         add(jComboBoxBitRate);
-        add(jButtonConnect);
-        add(jButtonDisconnect);
+        add(_buttonConnect);
+        add(_disconnectButton);
         add(jButtonRescan);
     }
 
@@ -85,7 +97,7 @@ public class PanelSerialConnection extends Panel {
     }
     
     public void addPort(String port) {
-        commList.addItem(port);
+        _commList.addItem(port);
     }
 
     public void addConnectionEventHandler(SerialConnectionRequestEvent ev) {
@@ -97,6 +109,6 @@ public class PanelSerialConnection extends Panel {
     }
 
     void clearPortList() {
-        commList.removeAllItems();
+        _commList.removeAllItems();
     }
 }
