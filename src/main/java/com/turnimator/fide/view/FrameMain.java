@@ -108,7 +108,7 @@ public class FrameMain extends JFrame {
     private final JPanel _statusPanel = new JPanel();
     private final JLabel _statusLabel = new JLabel();
     private final JProgressBar _statusProgressBar = new JProgressBar();
-    private final PanelWords _panelWords;
+    private PanelWords _panelWords;
 
     private PanelEditor ensurePanelEditor(ConnectionId id) {
         if (!id.equals(_currentEditorPanel.getConnectionId())) {
@@ -122,7 +122,7 @@ public class FrameMain extends JFrame {
      * HANDLER FOR EACH CONNECTION
      */
     public FrameMain() {
-        this._panelWords = new PanelWords();
+
         //super();
         setTitle("Fide Forth IDE");
         initComponents();
@@ -328,7 +328,7 @@ public class FrameMain extends JFrame {
         setMinimumSize(new Dimension(600, 300));
         addMenu();
         addToolBar();
-
+        _panelWords = new PanelWords();
         _mainPanel.setLayout(new BoxLayout(_mainPanel, BoxLayout.X_AXIS)); // Left panel and right panel
 
         _mainPanel.add(_mainPanelLeft);
