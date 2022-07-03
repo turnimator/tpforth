@@ -6,7 +6,9 @@
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/SerialConnectionRequestEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/model/CommunicatorInterface.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/ConnectionCloseEvent.java
+/home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/view/PanelWords.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/model/SerialCommunicator.java
+/home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/enums/ResponseOutputType.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/controller/CommunicationDispatcher.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/ConnectionsDisplayEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/ProgressEvent.java
@@ -19,7 +21,9 @@
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/view/PanelSerialConnection.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/model/TelnetCommunicator.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/view/PanelEditor.java
+/home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/WordsRequestEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/Main.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/DisconnectEvent.java
+/home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/WordClickEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/events/RescanEvent.java
 /home/atle/NetBeansProjects/fide/src/main/java/com/turnimator/fide/ConnectionId.java

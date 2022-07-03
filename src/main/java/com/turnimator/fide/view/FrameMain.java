@@ -17,6 +17,7 @@ import com.turnimator.fide.events.DisconnectEvent;
 import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
+import com.turnimator.fide.events.WordClickEvent;
 import com.turnimator.fide.events.WordsRequestEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -362,6 +363,12 @@ public class FrameMain extends JFrame {
         });
         
         _mainPanelRight.setBorder(new BevelBorder(BevelBorder.LOWERED));
+        _panelWords.addWordClickHandleer(new WordClickEvent() {
+            @Override
+            public void wordClicked(String word) {
+                JOptionPane.showMessageDialog(rootPane, "Not implemented yet");
+            }
+        });
         _mainPanelRight.add(_panelWords);
         
         
