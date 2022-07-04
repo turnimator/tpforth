@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>ESP32Forth</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>Forth help</div>
+        <h1>General</h1>
+        These words ought to be compatible with any standard Forth.
+
+        <h2>.</h2>
+        . ( n -- ) Print the number on the stack
+        <h3>Description</h3>
+        . will print the number on the stack according to the set number base.
+        <h3>Examples</h3>
+        10 . \ print the number 10
+
+        <h2>.s</h2>
+        Print the contents of the stack
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2 id='#create'>create</h2>
+        CREATE new-word1
+        <h3>Description</h3>
+        CREATE takes the next (space-delimited) word from the input stream, 
+        and creates a new dictionary item for it. 
+
+        <h3>Examples</h3>
+
+        <pre>CREATE new-word1
+
+        CREATE new-word2 1 cells allot  \ reserve 1 cell - initial value undefined
+        CREATE new-word3 4 ,            \ reserve 1 cell and initialize it (to 4) 
+
+        The variable can be examined and modified using @ (fetch) and ! (store) like this:
+
+        new-word2 @ .      \ get address, fetch from it and display
+        1234 new-word2 !   \ new value, get address, store to it 
+
+        \ Creating an array a of 5 cells, storing the number 17 in cell 1, then retrieving it
+
+        create a 5 cells allot  \ a) create the 5 cell array
+        17 a 1 cells + !        \ b) Store the number 17 in cell 1
+        a 1 cells + @ .         \ c) read and display the number stored in cell 1. (prints 17)
+
+        Array access could be simplified by defining getters and setters for the array.
+
+        : array create cells allot ; \ Factor a) above into a word
+        : array-put cells + ! ;      \ Factor b) above into a word
+        : array-get cells + @ ;      \ Factor c) above into a word
+
+        7 array b           \ Create a 7 cell array named b. compare to a) above. Simple, non?
+        5 b 3 array-put     \ put the number 5 in the 3rd cell
+        b 3 array-get .     \ print the contents of array b's 3rd cell
+
+
+        <br>
+        </pre> 
+        <h3>See also</h3>
+        <a href='#does&gt;'>Does&gt;</a> 
+
+        Portions taken from the GFORTH manual
+
+        <h2 id='#does&gt;'>does&gt;</h2>
+
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h3>See also</h3>
+        <a href='#create'>Create</a>
+
+        <h2>0&lt;</h2>
+        0&lt; (n -- f) true if n less than 0, false otherwise
+        <h3>Description</h3>
+        Puts true on the stack if n is less than 0, puts false on the stack otherwise
+        <h3>Examples</h3>
+        Print "Yes" is 2 is less than 0, "No" otherwise<br><br>
+
+        2 0< [if] ." yes" [else] ." No" [then] <br>
+        No ok<br><br>
+
+        Print "Yes" if -12 is less than 0, "No" otherwise<br><br>
+
+        -12 0< [if] ." yes" [else] ." No" [then]<br>
+        yes ok<br> 
+
+        <h1>Strings</h1>
+        Strings are stored as ( address length )
+        <pre>
+           Return the nth character of a string
+
+            : strnchr ( addr n i )
+                swap	\ addr i n
+                drop	\ addr i
+                +
+                @	\  c
+                255 and \ mask off hight byte
+            ;
+
+
+
+: strloop 	\ addr n xt
+            swap 	\ addr xt n
+            0 DO 	\ addr xt
+                2dup 	\ addr xt addr xt
+                swap	\ addr xt xt addr
+                i + @ 	\ addr xt xt value
+                swap	\ addr xt value xt
+                execute 	\ addr xt flag
+                IF exit THEN
+            LOOP
+            2drop       \ remember to clean up the stack
+        ;
+        
+\ IMO your source would clearer if you add a stack notation
+\ The following version is also shorter.
+: 2strloop ( adress-string lenght - adress-string )
+2dup bounds do i @ emit cr loop drop ;
+\ if you do not need the adress-string then it could be shorter:
+: 3strloop ( adress-string lenght - )
+bounds do i @ emit cr loop ;
+Note: I often start with a stack notation before coding.
+That feels like making a request to Forth.
+        </pre>
+        <h2>s&quot;</h2>
+        Start a string
+        <h3>Description</h3>
+        s&quot; takes one space, then a string, then a terminating &quot;
+        <h3>Examples</h3>
+        
+        <Pre>
+        Loop through all the characters of a string, printing a newline after each one.
+
+        : strloop 0 DO dup i + @ emit cr LOOP ;
+        s" atle" strloop
+
+        Factored into a word that takes a string and some arbitrary code and 
+        distributes the code over the characters in the string
+
+        : strloop 	\ addr n xt
+            swap 	\ addr xt n
+            0 DO 	\ addr xt
+                2dup 	\ addr xt addr xt
+                swap	\ addr xt xt addr
+                i + @ 	\ addr xt xt value
+                swap	\ addr xt value xt
+                execute \
+            LOOP
+            2drop       \ remember to clean up the stack
+        ;
+        
+        s" atle" ' emit strloop
+        atle ok
+
+        : lowcase 32 + emit ; \ simple lowercase
+
+        s" ATLE" ' lowcase strloop \ print lowercase string
+        atle ok
+
+        </Pre>        
+        
+        
+        <h1>GPIO</h1>
+        Short GPIO Names : pin adc
+
+        <h2>pin</h2>
+        pin ( value pin# -- )   Set GPIO pin value
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>adc</h2>
+        adc ( pin# -- n )   Analog read pin, result 0-1023
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>digitalRead</h2>
+        digitalRead ( pin -- value)   Read GPIO pin state
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>digitalWrite</h2>
+        digitalWrite ( pin value -- )   Set GPIO pin state
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>pinmode</h2>
+        pinMode ( pin mode -- )   Set GPIO pin mode
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>analogRead</h2>
+        analogRead ( pin -- n )   Analog read from 0-4095
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>pulseIn</h2>
+        pulseIn ( pin value usec -- usec/0 )  Wait for a pulse
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>dacWrite</h2>
+        dacWrite ( pin 0-255 -- )  Write to DAC (pin 25, 26)
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h1>Null Terminated Strings</h1>
+        As null terminated strings are used throughout C interfaces, 
+        their use is supported in Forth by way of several non-standard words 
+        with the convention of using Z/z to refer to such strings in names 
+        and stack comment
+
+        <h2>Z"</h2>
+        Z" ( "string" -- z ) Creates a null terminated string on the heap
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>Z>S</h2>
+        Z>S ( z -- a n ) Convert a null terminated string to a counted string
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>S>Z</h2>
+        S>Z ( a n -- z ) Convert a counted string string to null terminated 
+        (copies string to heap)
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h1>Raw Strings</h1>
+
+        Raw strings are provided better support using a string for the duration 
+        of the current command, without consuming heap memory.
+
+        <h2>R"</h2>
+        R" ( "string" -- a n ) Creates a temporary counted string
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>R|</h2>
+        R| ( string| -- a n ) Creates a temporary counted string ending with |
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Utilities</h1>
+
+        <h2>DUMP</h2>
+        DUMP ( a n -- ) Dump a memory region
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SEE</h2>
+        SEE ( "name" -- ) Attempt to decompile a word
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>ECHO</h2>
+        VARIABLE ECHO -- Determines if commands are echoed
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2></h2>
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h1>Vocabularies</h1>
+
+        ESP32forth uses a hybrid of Forth-79 and Forth-83 style vocabularies. By default vocabularies chain to the vocabulary in which they were defined, as in Forth-79. However, like Forth-83, ALSO can be used to add vocabularies to a vocabulary stack of which CONTEXT @ is the first item. The word ONLY clears the vocabulary stack, but as there is no separate ONLY vocabulary, it also sets CONTEXT to the FORTH vocabulary. The word SEALED modifies the most recently defined vocabulary such that it does not chain. Note, this must be done before words are added to it.
+
+
+        <h2>VOCABULARY</h2>
+        VOCABULARY ( "name" ) Create a vocabulary with the current vocabulary as parent
+        <h3>Description</h3>
+        <h3>Examples</h3> 
+
+        <h2>FORTH</h2>
+        FORTH ( -- ) Make the FORTH vocabulary the context vocabulary
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>DEFINITIONS</h2>
+        DEFINITIONS ( -- ) Make the context vocabulary the current vocabulary
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>VLIST</h2>
+        VLIST ( -- ) List the words in the context vocabulary (not chains)
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>WORDS</h2>
+        WORDS ( -- ) List the words in the context vocabulary (including chains)
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TRANSFER</h2>
+        TRANSFER ( "name" ) Move a word from its current dictionary to the current vocabulary
+        <h3>Description</h3>
+        Useful for "hiding" built-in words
+        <h3>Examples</h3>
+
+        <h2>}TRANSFER</h2>
+        TRANSFER{ ..words.. }TRANSFER ( -- ) Transfer multiple words to the current vocabulary
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TRANSFER{</h2>
+        TRANSFER{ ..words.. }TRANSFER ( -- ) Transfer multiple words to the current vocabulary
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>ALSO</h2>
+        ALSO ( -- ) Duplicate the vocabulary at the top of the vocabulary stack
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>ONLY</h2>
+        ONLY ( -- ) Reset context stack to one item, the FORTH dictionary
+        Non-standard, as there's no distinct ONLY vocabulary
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>ORDER</h2>
+        ORDER ( -- ) Print the vocabulary search order
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>SEALED</h2>
+        SEALED ( -- ) Alter the last vocabulary defined so it doesn't chain
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h1>Interpret Time Conditions</h1>
+
+        [I]F, [ELSE], and [THEN] can be used to selectively compile. 
+        Used in tandem with DEFINED? they can be used to handle the absence of modules gracefully. 
+        Nesting is supported.
+
+        <h2>DEFINED?</h2>
+        DEFINED? ( "name" -- xt|0 ) Check if a word exists (works at compile time too).
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>[IF]</h2>
+        [IF] ( f -- ) Conditionally interpret the text the follows.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>[ELSE]</h2>       
+        [ELSE] ( -- ) Interpret time ELSE.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>[THEN]</h2>       
+        [THEN] ( -- ) Interpret time THEN.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Blocks</h1>
+
+        <h2>USE</h2>
+        USE ( "name" -- ) Use "name" as the blockfile, e.g. USE /spiffs/foo
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>OPEN-BLOCKS</h2>       
+        OPEN-BLOCKS ( a n -- ) Open a file as the block file
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>LOAD</h2>
+        LOAD ( n -- ) Evaluate a block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>THRU</h2>       
+        THRU ( a b -- ) Load blocks a thru b
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>LIST</h2>
+        LIST ( n -- ) List a block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>BLOCK</h2>       
+        BLOCK ( n -- a ) Get a 1024 byte block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>BUFFER</h2>       
+        BUFFER ( n -- a ) Get a 1024 byte block without regard to old contents
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2></h2>
+        UPDATE ( -- ) Mark the last block modified
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>FLUSH</h2>       
+        FLUSH ( -- ) Save and empty all buffers
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>EMPTY-BUFFERS</h2>
+        EMPTY-BUFFERS ( -- ) Empty all buffers
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>SAVE-BUFFERS</h2>
+        SAVE-BUFFERS ( -- ) Save all buffers
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>SCR</h2>
+        SCR ( -- a ) Pointer to last listed block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Block Editor</h1>
+
+        These words are available inside the EDITOR vocabulary. Note the block editor places newlines in the 63rd column of each line to make the block file readable in a text editor.
+
+        <h2>WIPE</h2>
+        WIPE ( -- ) Blank out the current block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>L</h2>
+        L ( -- ) List the current block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>D</h2>
+        D ( n -- ) Delete a line in the current block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>E</h2>
+        E ( n -- ) Clear a line in the current block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>R</h2>
+        R ( n "text" -- ) Replace a line in the current block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>A</h2>
+        A ( n "text" -- ) Add (insert) a line in the current block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>P</h2>
+        P ( -- ) Move to the previous block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>N</h2>
+        N ( -- ) Move to the next block
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+
+        <h1>Utilities</h1>
+
+        <h2>SEE</h2>
+        SEE ( "name" -- ) Attempt to decompile a word
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>ECHO</h2>
+        ECHO ( -- a ) -- Address of flag that determines if commands are echoed
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>ESP32forth Bindings</h1>
+
+        Because Arduino builds a statically linked image for flashing into ESP32 devices, 
+        all C function bindings need to be explicitly added. 
+        This is the current collection. 
+        Typically to reduce confusion, function names have be preserved even through verbose. 
+        In popular cases a shorted higher level name is provided.
+
+        See template.ino.
+
+        <h1>Allocation</h1>Allocation
+
+        These words are inside the internals vocabulary.
+
+        <h2>MALLOC</h2> 
+        MALLOC ( n -- a | 0 )   System malloc
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>SYSFREE</h2> 
+        SYSFREE ( a -- )   System free
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>REALLOC</h2> 
+        REALLOC ( a n -- a | 0 )   System realloc
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h1>Serial</h1>
+
+        These words are inside the Serial vocabulary.
+
+        <h2>Serial.begin</h2>
+        Serial.begin ( baud -- )   Start serial port
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Serial.end</h2>
+        Serial.end ( -- )   End serial port
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Serial.available</h2>
+        Serial.available ( -- f )   Is serial data available
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Serial.readBytes</h2>
+        Serial.readBytes ( a n -- n )   Read serial bytes, return number gotten
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>Serial.write</h2>
+        Serial.write ( a n -- n )   Write serial bytes
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>Serial.flush</h2>
+        Serial.flush ( -- )   Flush serial buffer
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h1>Serial Bluetooth</h1>
+
+        These words are inside the bluetooth vocabulary.
+
+        <h2>SerialBT.new</h2>
+        SerialBT.new ( -- bt )   Allocate new BT object
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.delete</h2>
+        SerialBT.delete ( bt -- )   Free BT object
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.begin</h2>
+        SerialBT.begin ( localname ismaster bt -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.end</h2>
+        SerialBT.end ( bt -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.available</h2>
+        SerialBT.available ( bt -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.readBytes</h2>
+        SerialBT.readBytes ( a n bt -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.write</h2>
+        SerialBT.write ( a n bt -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.flush</h2>
+        SerialBT.flush ( bt -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.hasClient</h2>
+        SerialBT.hasClient ( bt -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.enableSSP</h2>
+        SerialBT.enableSSP ( bt -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.setPin</h2>
+        SerialBT.setPin ( z bt -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.unpairDevice</h2>
+        SerialBT.unpairDevice ( addr bt -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.connect</h2>
+        SerialBT.connect ( remotename bt -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.connectAddr</h2>
+        SerialBT.connectAddr ( addr bt -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.disconnect</h2>
+        SerialBT.disconnect ( bt -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.connected</h2>
+        SerialBT.connected ( timeout bt -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SerialBT.isReady</h2>
+        SerialBT.isReady ( checkMaster timeout -- f )
+        Default checkMaster=false, timeout=0
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h1>Bluetooth</h1>
+
+        These words are inside the bluetooth vocabulary.
+
+        <h2>esp_bt_dev_get_address</h2>
+        esp_bt_dev_get_address ( -- a ) addr of 6 byte mac address
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>ledc</h1>
+
+        These words are inside the ledc vocabulary.
+
+        <h2>ledcSetup</h2>
+        ledcSetup ( channel freq resolution -- freq )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>ledcAttachPin</h2>
+        ledcAttachPin ( pin channel -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>ledcDetachPin</h2>
+        ledcDetachPin ( pin -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>ledcRead</h2>
+        ledcRead ( channel -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>ledcReadFreq</h2>
+        ledcReadFreq ( channel -- freq )   Get frequency (x 1,000,000)
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>ledcWrite</h2>
+        ledcWrite ( channel duty -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>ledcWriteTone</h2>
+        ledcWriteTone ( channel freq )   Write tone frequency (x 1000)
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>ledcWriteNote</h2>
+        ledcWriteNote ( channel note octave -- freq )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>System</h1>
+
+
+        <h2>MS</h2>
+        MS ( n -- ) Pause for some number of milliseconds.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>MS-TICKS</h2>
+        MS-TICKS ( -- n ) Time since start in milliseconds.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>TERMINATE</h2>
+        TERMINATE ( n -- ) Call system exit.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Files</h1>
+
+        <h2>R/O</h2>
+        R/O ( -- mode )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>R/W</h2>
+        R/W ( -- mode )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>W/O</h2>
+        W/O ( -- mode )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>BIN</h2>
+        BIN ( mode -- mode )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>CLOSE-FILE</h2>
+        CLOSE-FILE ( fh -- ior )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>OPEN-FILE</h2>
+        OPEN-FILE ( a n mode -- fh ior )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>CREATE-FILE</h2>
+        CREATE-FILE ( a n mode -- fh ior )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>DELETE-FILE</h2>
+        DELETE-FILE ( a n -- ior )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WRITE-FILE</h2>
+        WRITE-FILE ( a n fh -- ior )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>READ-FILE</h2>
+        READ-FILE ( a n fh -- n ior )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>FILE-POSITION</h2>
+        FILE-POSITION ( fh -- n ior )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>REPOSITION-FILE</h2>
+        REPOSITION-FILE ( n fh -- ior )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>FILE-SIZE</h2>
+        FILE-SIZE ( fh -- n ior )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>WiFi</h1>
+
+        These words are inside the WiFi vocabulary.
+
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        WiFi.config ( ip dns gateway subnet -- )   Packaged a.b.c.d little-endian
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        Wifi.begin ( ssid-z password-z -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        Wifi.disconnect ( -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        WiFi.status ( -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        WiFi.macAddress ( a -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        WiFi.localIP ( -- ip )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        WiFi.mode ( mode -- ) WIFI_MODE_NULL WIFI_MODE_STA WIFI_MODE_AP WIFI_MODE_APSTA
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        WiFi.setTxPower ( powerx4 -- )   Set power x4
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        WiFi.getTxPower ( -- powerx4 )   Get power x4
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>mDNS</h1>mDNS
+
+        <h2>MDNS.begin</h2>
+        MDNS.begin ( name-z -- )   Start multicast dns
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>SPIFFS</h1>
+
+        These words are inside the SPIFFS vocabulary.
+
+        <h2>SPIFFS.begin</h2>
+        SPIFFS.begin ( format-on-fail path-z max-files -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>SPIFFS.end</h2>
+        SPIFFS.end ( -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SPIFFS.format</h2>
+        SPIFFS.format ( -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SPIFFS.totalBytes</h2>
+        SPIFFS.totalBytes ( -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SPIFFS.usedBytes</h2>
+        SPIFFS.usedBytes ( -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>WebServer</h1>
+
+        These words are inside the WebServer vocabulary.
+
+        <h2>WebServer.new</h2>
+        WebServer.new ( port -- ws )   Allocate new webserver object
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.delete</h2>
+        WebServer.delete ( ws -- )   Delete webserver object
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.begin</h2>
+        WebServer.begin ( port ws -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.stop</h2>
+        WebServer.stop ( ws -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.on</h2>
+        WebServer.on ( path-z xt ws -- ) Set up a web path handle callback
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.handleClient</h2>
+        WebServer.handleClient ( ws -- )   Handle one client request
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.hasArg</h2>
+        WebServer.hasArg ( z ws -- f )   By name
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.arg</h2>
+        WebServer.arg ( z ws -- z )   By name
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.argi</h2>
+        WebServer.argi ( n ws -- z )   By index
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.argName</h2>
+        WebServer.argName ( n ws -- z)   By index
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.args</h2>
+        WebServer.args ( ws -- n )   Number of args
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.setContentLength</h2>
+        WebServer.setContentLength ( n ws -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.sendHeader</h2>
+        WebServer.sendHeader ( name-z value-z fist ws -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.send</h2>
+        WebServer.send ( code mimetype data ws -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.sendContent</h2>
+        WebServer.sendContent ( z ws -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>WebServer.method</h2>
+        WebServer.method ( ws -- n )   GET / POST etc.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Wire</h1>
+
+        These words are inside the Wire vocabulary.
+
+        <h2>Wire.begin</h2>
+        Wire.begin ( -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.setPins</h2>
+        Wire.setPins ( sda scl -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.setClock</h2>
+        Wire.setClock ( frequency -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.getClock</h2>
+        Wire.getClock ( -- frequency )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.setTimeout</h2>
+        Wire.setTimeout ( ms -- ) Default is 50ms
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.getTimeout</h2>
+        Wire.getTimeout ( -- ms )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.lastError</h2>
+        Wire.lastError ( -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.getErrorText</h2>
+        Wire.getErrorText ( n -- z )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.beginTransmission</h2>
+        Wire.beginTransmission ( n -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.endTransmission</h2>
+        Wire.endTransmission ( sendstop -- f ) Default is true
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.requestFrom</h2>
+        Wire.requestFrom ( address quantity sendstop -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.writeTransmission</h2>
+        Wire.writeTransmission ( addr a n sendstop -- err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.readTransmission</h2>
+        Wire.readTransmission ( addr a n sendstop acount -- err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.write</h2>
+        Wire.write ( a n -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.available</h2>
+        Wire.available ( -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.read</h2>
+        Wire.read ( -- ch )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.peek</h2>
+        Wire.peek ( -- ch )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.busy</h2>
+        Wire.busy ( -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>Wire.flush</h2>
+        Wire.flush ( -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Camera</h1>
+
+        These words are inside the camera vocabulary.
+
+        <h2>esp_camera_init</h2>
+        esp_camera_init ( config -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>esp_camera_deinit</h2>
+        esp_camera_deinit ( -- f )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>esp_camera_fb_get</h2>
+        esp_camera_fb_get ( -- fb )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>esp_camera_fb_return</h2>
+        esp_camera_fb_return ( fb -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>esp_camera_sensor_get</h2>
+        esp_camera_sensor_get ( -- sensor )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>SD_MMC</h1>
+
+        These words are inside the SD_MMC vocabulary.
+
+
+        <h2>SD_MMC.begin</h2>
+        SD_MMC.begin ( mount mode1bit )   default mode1bit=false
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SD_MMC.end</h2>
+        SD_MMC.end ( -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SD_MMC.cardType</h2>
+        SD_MMC.cardType ( -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SD_MMC.totalBytes</h2>
+        SD_MMC.totalBytes ( -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>SD_MMC.usedBytes</h2>
+        SD_MMC.usedBytes ( -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Interrupts</h1>
+
+        These words are inside the INTERRUPTS vocabulary.
+
+        <h1>High Level words</h1>
+
+
+        <h2>pinchange</h2>
+        pinchange ( xt pin -- ) Call xt when pin changes.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        Example:
+
+        17 input pinMode
+        : test ." pinvalue: " 17 digitalRead . cr ;
+        ' test 17 pinchange
+
+        <h1>Low Level words</h1>
+
+
+        <h2>ESP_INTR_FLAG_DEFAULT</h2>
+        ESP_INTR_FLAG_DEFAULT -- Default handler allows per pin routing
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Various triggers</h1>
+
+        <h2>GPIO_INTR_DISABLE</h2>
+        GPIO_INTR_DISABLE
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>GPIO_INTR_POSEDGE</h2>
+        GPIO_INTR_POSEDGE
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2></h2>
+        GPIO_INTR_NEGEDGE
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2></h2>
+        GPIO_INTR_ANYEDGE
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2></h2>
+        GPIO_INTR_LOW_LEVEL
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2></h2>
+        GPIO_INTR_HIGH_LEVEL
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>gpio_config</h2>
+        gpio_config ( gpio_config_t* -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_reset_pin</h2>
+        gpio_reset_pin ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_set_intr_type</h2>
+        gpio_set_intr_type ( pin type -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_intr_enable</h2>
+        gpio_intr_enable ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_intr_disable</h2>
+        gpio_intr_disable ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_set_level</h2>
+        gpio_set_level ( pin level -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>gpio_get_level</h2>
+        gpio_get_level ( pin -- level )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_set_direction</h2>
+        gpio_set_direction ( pin mode -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_set_pull_mode</h2>
+        gpio_set_pull_mode ( pin mode -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_wakeup_enable</h2>
+        gpio_wakeup_enable ( pin type -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_wakeup_disable</h2>
+        gpio_wakeup_disable ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_pullup_en</h2>
+        gpio_pullup_en ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>gpio_pullup_dis</h2>
+        gpio_pullup_dis ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>gpio_pulldown_en</h2>
+        gpio_pulldown_en ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>gpio_pulldown_dis</h2>
+        gpio_pulldown_dis ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>gpio_hold_en</h2>
+        gpio_hold_en ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>gpio_hold_dis</h2>
+        gpio_hold_dis ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_deep_sleep_hold_en</h2>
+        gpio_deep_sleep_hold_en ( -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_deep_sleep_hold_dis</h2>
+        gpio_deep_sleep_hold_dis ( -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_install_isr_service</h2>
+        gpio_install_isr_service ( a -- ) Typically ESP_INTR_FLAG_DEFAULT
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>        gpio_uninstall_isr_service</h2>
+        gpio_uninstall_isr_service
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_isr_handler_add</h2>
+        gpio_isr_handler_add ( pin xt arg -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_isr_handler_remove</h2>
+        gpio_isr_handler_remove ( pin -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>gpio_set_drive_capability</h2>
+        gpio_set_drive_capability ( pin cap -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>gpio_get_drive_capability</h2> 
+        gpio_get_drive_capability ( pin cap* -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>esp_intr_alloc</h2> 
+        esp_intr_alloc ( source flags xt args handle* -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>esp_intr_free</h2>         
+        esp_intr_free ( handle -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>timer_isr_register</h2> 
+        timer_isr_register ( group timer xt arg ret -- 0/err )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Tasks</h1>
+
+        These words are inside the TASKS vocabulary.
+
+        <h2></h2> 
+        PAUSE ( -- ) Yield to other tasks.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>MS</h2> 
+        MS ( n -- ) Pause for some number of milliseconds (yields to other tasks).
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TASK</h2> 
+        TASK ( xt dsz rsz "name" -- ) Create a new task with dsz size data stack
+        and rsz size return stack running xt.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>START-TASK</h2> 
+        START-TASK ( task -- ) Activate a task.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>.TASKS</h2> 
+        .TASKS ( -- ) List running tasks.
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        Example:
+        tasks
+        : hi   begin ." Time is: " ms-ticks . cr 1000 ms again ;
+        ' hi 100 100 task my-counter
+        my-counter start-task 
+
+        <h1>Timers</h1>
+
+        These words are inside the TIMERS vocabulary. 
+        NOTE: These are low level ESP32 timers. For a periodic background operation, you’ll probably want to use TASKS.
+
+        High Level words:
+
+        ( timer t = 0-3 )
+
+        <h2>interval</h2> 
+        interval ( xt usec t -- ) Setup timer t to call xt each after usec
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>rerun</h2> 
+        rerun ( t -- ) Rerun timer t triggering
+        <h3>Description</h3>
+        <h3>Examples</h3>
+        Example:
+        timers
+        : hi   ." hi" cr   0 rerun ;
+        ' hi 1000000 0 interval ( run hi every second )
+
+        <h1>Medium Level words</h1>
+
+        <h2>timer@</h2> 
+        timer@ ( t -- lo hi )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>timer!</h2> 
+        timer! ( lo hi t -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>alarm</h2> 
+        alarm ( t -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>enable!</h2> 
+        enable! ( f t -- ) Timer enable/disable
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>increase!</h2> 
+        increase! ( f t -- ) Timer increasing/decreasing
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>divider!</h2> 
+        divider! ( n t -- ) Timer divider 2 - 65535
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>edgeint!</h2> 
+        edgeint! ( f t -- ) Edge trigger
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>levelint!</h2> 
+        levelint! ( f t -- ) Level trigger
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>alarm-enable!</h2> 
+        alarm-enable! ( f t -- ) Alarm enable
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>alarm-enable@</h2> 
+        alarm-enable@ ( t -- f ) Alarm enabled?
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>onalarm</h2> 
+        onalarm ( xt t -- ) Set callback
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>Low Level words</h1>
+
+        ( group n = 0/1, timer x = 0/1, watchdog m = 0-5 )
+
+        <h2>TIMGn_TxCONFIG_REG</h2> 
+        TIMGn_TxCONFIG_REG ( n x -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_TxLOHI_REG</h2> 
+        TIMGn_TxLOHI_REG ( n x -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_TxUPDATE_REG</h2> 
+        TIMGn_TxUPDATE_REG ( n x -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_TxALARMLOHI_REG</h2> 
+        TIMGn_TxALARMLOHI_REG ( n x -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_TxLOADLOHI_REG</h2> 
+        TIMGn_TxLOADLOHI_REG ( n x -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_TxLOAD_REG</h2> 
+        TIMGn_TxLOAD_REG ( n x -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h2>TIMGn_Tx_WDTCONFIGm_REG</h2> 
+        TIMGn_Tx_WDTCONFIGm_REG ( n m -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_Tx_WDTFEED_REG</h2> 
+        TIMGn_Tx_WDTFEED_REG ( n -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_Tx_WDTWPROTECT_REG</h2> 
+        TIMGn_Tx_WDTWPROTECT_REG ( n -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_RTCCALICFG_REG</h2> 
+        TIMGn_RTCCALICFG_REG ( n -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_RTCCALICFG1_REG</h2> 
+        TIMGn_RTCCALICFG1_REG ( n -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_Tx_INT_ENA_REG</h2> 
+        TIMGn_Tx_INT_ENA_REG ( n -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_Tx_INT_RAW_REG</h2> 
+        TIMGn_Tx_INT_RAW_REG ( n -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_Tx_INT_ST_REG</h2> 
+        TIMGn_Tx_INT_ST_REG ( n -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>TIMGn_Tx_INT_CLR_REG</h2> 
+        TIMGn_Tx_INT_CLR_REG ( n -- a )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>RTOS</h1>
+
+        These words are inside the RTOS vocabulary.
+
+        <h2>xPortGetCoreID</h2>
+        xPortGetCoreID ( -- n )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>xTaskCreatePinnedToCore</h2> 
+        xTaskCreatePinnedToCore ( fn name stack-depth params priority taskout coreid -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+        <h2>vTaskDelete</h2> 
+        vTaskDelete ( task ) -- ) 
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        <h1>ESP32 WebUI</h1>
+
+        A terminal over the web can be activated. Contact at port printed or via mDNS http://forth/.
+
+        webui ( network-z password-z -- )
+        <h3>Description</h3>
+        <h3>Examples</h3>
+
+
+        Usage:
+
+        z" NETWORK-NAME" z" PASSWORD" webui
+
+        See web_interface.fs.
+        Autoexec.fs
+
+        The system will automatically attempt to mount SPIFFS filesystem at /spiffs. It will then at start attempt to load /spiffs/autoexec.fs
+
+        One way this feature can be used to configure the Web UI to start by default. When doing this, be sure to test your Web UI settings work well first.
+
+        r| z" NETWORK-NAME" z" PASSWORD" webui | s" /spiffs/autoexec.fs" dump-file
+
+        To remove a previously configured autoexec.fs you will need to be able to reboot in a mode with Forth. One way to do this is to search for the line in the .ino file that refers to autoexec.fs and replace it with a different name. Then run the following:
+
+        s" /spiffs/autoexec.fs" delete-file
+
+        See autoboot.fs.
+        Adding Words
+
+        Adding words based on C functions can be done by editing the source code. For ESP32forth template.ino is the appropriate place.
+
+        Because of the use of X-Macros words can be added in as little as one line. Locate the macro called PLATFORM_OPCODE_LISTand add your words there.
+
+        NOTE: Be careful to end each line with a \ so the macros will chain correctly.
+
+        To add a word containing only letters, numbers, and underscore you can use Y.
+
+        Y(MY_WORD123, c_function_to_call()) \
+
+        If your word name contains other characters, instead use X. You will need to make up an alternate name for the middle parameter. It must contain only letters, numbers, and underscore. The name is not used anywhere else, but must be unique.
+
+        X("myword!", MY_WORD_BANG, c_function_to_call()) \
+
+        Values from the data stack can be accessed via the variables tos (Top of Stack) and sp (Pointer to the rest of the stack). The stack has the data type cell_t.
+
+        You can push a value of any type to the stack with the macro PUSH:
+
+        Y(MY_WORD, PUSH calculate_magic_value()) \
+
+        To simplify calling C functions, you can also refer to elements on the stack with the types positional names:
+
+        n10 n9 n8 n7 n6 n5 n4 n3 n2 n1 n0 - Access stack as cell_t integer values
+        c4 c3 c2 c1 c0 - Access stack as char* values
+        b4 b3 b2 b1 b0 - Access stack as uint8_t* byte values
+        a6 a5 a4 a3 a2 a1 a0 - Access stack as void* values
+
+        Examples:
+        void send_message(const char *message, int code);
+        ...
+        X("send-message", SEND_MESSAGE, send_message(c1, n0)) \
+
+        You can always replace the top item on the stack with SET:
+
+        Y(DECODE, SET decode_func(n0)) \
+
+        You can drop elements from the stack with DROP or DROPn(number). You can nip elements from below top of the stack with NIP or NIPn(number). Be aware that like PUSH this will cause stack indices to change.
+
+        int my_cool_function(char *foo, int bar, uint8_t *baz);
+        ...
+        Y(MY_FUNC, n0 = my_cool_function(c2, n1, b0); NIPn(2)) \
+
+        Multiple C statements can be included in the code area of a word, but care must be taken to generally avoid {}s. If you find you need nesting, a separate function is recommended.
+
+        New variables can be declared in each word and are scoped to that word.
+
+        Y(MY_WORD, cell_t foo = n0; DROP; char *x = c0; DROP; \
+        PUSH my_func(foo, x)) \
+    </body>
+</html>
