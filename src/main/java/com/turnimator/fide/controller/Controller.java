@@ -18,6 +18,7 @@ import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
 import com.turnimator.fide.events.WordsRequestEvent;
+import com.turnimator.fide.model.HelpServer;
 import com.turnimator.fide.view.FrameMain;
 import java.awt.FileDialog;
 import static java.awt.FileDialog.LOAD;
@@ -36,12 +37,13 @@ import javax.swing.JOptionPane;
  * @author atle
  */
 public final class Controller {
-    String lastDirectory = ".";
+    String _lastDirectory = ".";
     FrameMain _frameMain;
     CommunicationDispatcher _dispatcher = new CommunicationDispatcher();
+    HelpServer _helpServer;
     
     public Controller() {
-        lastDirectory = System.getProperty("LastDir");
+        _lastDirectory = System.getProperty("LastDir");
 
         _frameMain = new FrameMain();
         addEventHandlers();
@@ -55,6 +57,7 @@ public final class Controller {
         });
         scanPorts();
         _frameMain.addEditorTab(new ConnectionId(ConnectionType.None, "Scratchpad"));
+        _helpServer = new HelpServer();
     }
 
     void scanPorts() {
@@ -69,7 +72,7 @@ public final class Controller {
             @Override
             public void open() {
                 FileDialog f = new FileDialog(_frameMain, "Open", LOAD);
-                f.setDirectory(lastDirectory);
+                f.setDirectory(_lastDirectory);
                 f.setFilenameFilter(new FilenameFilter() {
                     @Override
                     /**
@@ -90,9 +93,9 @@ public final class Controller {
                     }
                 });
                 f.setVisible(true);
-                lastDirectory = f.getDirectory();
+                _lastDirectory = f.getDirectory();
 
-                System.setProperty("LastDir", lastDirectory);
+                System.setProperty("LastDir", _lastDirectory);
                 ConnectionId id = _dispatcher.getConnectionId();
                 if (id != null) {
                     _frameMain.setConnectionId(id);
@@ -121,7 +124,7 @@ public final class Controller {
             @Override
             public void save(ConnectionId source) {
                 FileDialog f = new FileDialog(_frameMain, "Open", FileDialog.SAVE);
-                f.setDirectory(lastDirectory);
+                f.setDirectory(_lastDirectory);
                 f.setFilenameFilter(new FilenameFilter() {
                     @Override
                     /**
@@ -142,9 +145,9 @@ public final class Controller {
                     }
                 });
                 f.setVisible(true);
-                lastDirectory = f.getDirectory();
+                _lastDirectory = f.getDirectory();
 
-                System.setProperty("LastDir", lastDirectory);
+                System.setProperty("LastDir", _lastDirectory);
 
                 String file = f.getDirectory() + "/" + f.getFile();
                 try {

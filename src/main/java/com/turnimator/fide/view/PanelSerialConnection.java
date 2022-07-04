@@ -87,9 +87,10 @@ public class PanelSerialConnection extends Panel {
 
         add(_commList);
         add(jComboBoxBitRate);
+        add(jButtonRescan);
         add(_buttonConnect);
         add(_disconnectButton);
-        add(jButtonRescan);
+        
     }
 
     public void addRescanEventHandler(RescanEvent ev){
