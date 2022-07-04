@@ -8,6 +8,7 @@ import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionsDisplayEvent;
 import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.enums.ResponseOutputType;
+import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.events.FileOpenEvent;
 import com.turnimator.fide.events.FileSaveEvent;
 import com.turnimator.fide.events.ReceiveEvent;
@@ -34,7 +35,7 @@ import javax.swing.JOptionPane;
  *
  * @author atle
  */
-public class Controller {
+public final class Controller {
     String lastDirectory = ".";
     FrameMain _frameMain;
     CommunicationDispatcher _dispatcher = new CommunicationDispatcher();
@@ -199,6 +200,13 @@ public class Controller {
                 _frameMain.setConnectionsVisible(false);
                 _frameMain.addEditorTab(connectionId);
                 _frameMain.setEditorTab(connectionId);
+            }
+        });
+        _frameMain.addConnectionCloseEventHandler(new ConnectionCloseEvent() {
+            @Override
+            public void close(ConnectionId id) {
+                _dispatcher.disconnect(id);
+                _frameMain.removeEditorTab(id);
             }
         });
 
