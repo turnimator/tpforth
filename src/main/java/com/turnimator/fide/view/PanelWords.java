@@ -6,6 +6,7 @@ package com.turnimator.fide.view;
 
 import java.lang.System;
 import com.turnimator.fide.events.WordClickEvent;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.lang.reflect.Array;
@@ -21,6 +22,11 @@ import javax.swing.DefaultListModel;
 
 import javax.swing.border.BevelBorder;
 import javax.swing.BoxLayout;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 /**
  *
@@ -29,9 +35,10 @@ import javax.swing.BoxLayout;
 public class PanelWords extends JPanel {
     private JPanel _panel = new JPanel();
     private HashSet<String> _wordSet = new HashSet<>();
-    // private JScrollPane _scrollPane;
+    private JScrollPane _scrollPane;
     String[] numbers = {"One", "Two", "Three", "Four", "Five"};
-    private java.awt.List _wordsList;
+    private JTree _wordsTree;
+    private DefaultTreeModel _model;
     
     private final ArrayList<WordClickEvent> _wordRequestHandlerList = new ArrayList<>();
     
@@ -45,9 +52,9 @@ public class PanelWords extends JPanel {
     }
 
     public void bubbleWordsRequest() {
-        String w = (String) _wordsList.getSelectedItem();
+        TreePath selectionPath = _wordsTree.getSelectionPath();
         for (WordClickEvent ev : _wordRequestHandlerList) {
-            ev.wordClicked(w);
+            ev.wordClicked(selectionPath.getLastPathComponent().toString());
         }
     }
     
@@ -55,26 +62,38 @@ public class PanelWords extends JPanel {
         System.out.println(words);
         List<String> asList = Arrays.asList(words.split(" "));
         _wordSet.addAll(asList);
+        int i = 0;
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) _model.getRoot();
         for (String s : _wordSet) {
-            _wordsList.add(s);
+            DefaultMutableTreeNode child = new DefaultMutableTreeNode(s);
+            child.add(new DefaultMutableTreeNode("Description"));
+            node.add(child);
+            
         }
+        _model.reload();
+        _wordsTree.expandRow(3);
         
     }
     
     private void initComponents() {
-        this.setSize(new Dimension(620, 1090));
-        _wordsList = new java.awt.List();
+        // Perhaps give up this shit and use something else!!!!
+        // A JTREE!!!
+        _model = new DefaultTreeModel(new DefaultMutableTreeNode());
         
-        _wordsList.setSize(new Dimension(600, 1080));
-        _panel.setAlignmentY(TOP_ALIGNMENT);
-        _panel.setAlignmentX(LEFT_ALIGNMENT);
-        _panel.setLayout(new FlowLayout());
-        _panel.setSize(new Dimension(620, 1090));
+        _wordsTree = new JTree();
+        _wordsTree.setModel(_model);
+        _wordsTree.setSize(new Dimension(400, 1200));
+        
+        setLayout(new BorderLayout());
+        
         this.setBorder(new BevelBorder(BevelBorder.LOWERED));
+         
+        _scrollPane = new JScrollPane(_wordsTree);
         
-        _wordsList.setMaximumSize(new Dimension(1600, 1080));
-        _panel.add(_wordsList);
-        this.add(_panel);
-        _wordsList.setMinimumSize(_panel.getSize());
+        
+        add(_scrollPane);
+        
+        //this.add(_panel);
+        
     }
 }

@@ -325,7 +325,7 @@ public class FrameMain extends JFrame {
 
     private void initComponents() {
 
-        setMinimumSize(new Dimension(600, 300));
+        setSize(new Dimension(400, 400));
         addMenu();
         addToolBar();
         _panelWords = new PanelWords();
@@ -449,7 +449,7 @@ public class FrameMain extends JFrame {
         }
 
         _currentEditorPanel = new PanelEditor(id);
-        _currentEditorPanel.setMinimumSize(new Dimension(600, 400));
+        _currentEditorPanel.setSize(new Dimension(600, 400));
         _editorPanelMap.put(id, _currentEditorPanel);
         _tabbedEditorPane.addTab(id.toString(), _currentEditorPanel);
         _currentEditorPanel.addTransmitEventHandler(new TransmitEvent() {
