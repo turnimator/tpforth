@@ -9,6 +9,7 @@ import com.turnimator.fide.events.ConnectionsDisplayEvent;
 import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.enums.ResponseOutputType;
 import com.turnimator.fide.events.ConnectionCloseEvent;
+import com.turnimator.fide.events.ExampleRequestEvent;
 import com.turnimator.fide.events.FileOpenEvent;
 import com.turnimator.fide.events.FileSaveEvent;
 import com.turnimator.fide.events.ReceiveEvent;
@@ -260,6 +261,12 @@ public final class Controller {
                 String help = _helpServer.getHelpText(word);
                 Logger.getAnonymousLogger().log(Level.INFO, "HelpServer returned:" + help);
                 _frameMain.setHelp(word, help);
+            }
+        });
+        _frameMain.addExampleRequestEventHandler(new ExampleRequestEvent() {
+            @Override
+            public void requestExample(String word) {
+                String helpText = _helpServer.getExample(word);
             }
         });
     }

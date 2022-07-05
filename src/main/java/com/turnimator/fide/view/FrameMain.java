@@ -14,6 +14,7 @@ import com.turnimator.fide.events.FileSaveEvent;
 import com.turnimator.fide.events.RescanEvent;
 import com.turnimator.fide.events.SerialConnectionRequestEvent;
 import com.turnimator.fide.events.DisconnectEvent;
+import com.turnimator.fide.events.ExampleRequestEvent;
 import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
@@ -84,7 +85,7 @@ public class FrameMain extends JFrame {
     public void addWordClickEventHandler(WordClickEvent ev){
         _wordClickHandlerList.add(ev);
     }
-    public void bubbleWordClickEvent(String word){
+    private void bubbleWordClickEvent(String word){
         for(WordClickEvent ev:_wordClickHandlerList){
             ev.wordClicked(word);
         }
@@ -94,9 +95,19 @@ public class FrameMain extends JFrame {
     public void addWordsRequestHandler(WordsRequestEvent ev) {
         _wordsRequestHandlerList.add(ev);
     }
-    public void bubbleWordsRequest(ConnectionId id) {
+    private void bubbleWordsRequest(ConnectionId id) {
         for (WordsRequestEvent ev : _wordsRequestHandlerList) {
             ev.requestWords(id);
+        }
+    }
+    
+    private final ArrayList<ExampleRequestEvent> _exampleRequestHandlerList = new ArrayList<>();
+    public void addExampleRequestEventHandler(ExampleRequestEvent ev){
+        _exampleRequestHandlerList.add(ev);
+    }
+    private void bubbleExampleRequest(String word){
+        for(ExampleRequestEvent ev:_exampleRequestHandlerList){
+            ev.requestExample(word);
         }
     }
 
@@ -480,6 +491,12 @@ public class FrameMain extends JFrame {
                     Logger.getAnonymousLogger().log(Level.INFO, "Close Request from editorPanel");
                     ev.close(id);
                 }
+            }
+        });
+        _currentEditorPanel.addExampleRequestHandler(new ExampleRequestEvent() {
+            @Override
+            public void requestExample(String word) {
+                bubbleExampleRequest(word);
             }
         });
     }

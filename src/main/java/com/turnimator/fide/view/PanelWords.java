@@ -84,7 +84,7 @@ public class PanelWords extends JPanel {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) _model.getRoot();
         for (String s : _wordSet) {
             DefaultMutableTreeNode child = new DefaultMutableTreeNode(s);
-            child.add(new DefaultMutableTreeNode("Description"));
+            child.add(new DefaultMutableTreeNode("Click Me"));
             node.add(child);
         }
         _model.reload();

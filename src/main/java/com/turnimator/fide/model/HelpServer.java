@@ -70,4 +70,8 @@ public class HelpServer {
         }
         return topic + " not found";
     }
+
+    public String getExample(String word) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }
