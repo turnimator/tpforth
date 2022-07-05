@@ -35,7 +35,7 @@ public class HelpServer {
         Logger.getAnonymousLogger().log(Level.INFO, p);
     }
 
-    public String getHelp(String topic) {
+    public String getHelpHtml(String topic) {
         boolean found = false;
         for (Element e : doc.select("h1,h2,h3")) {
             System.out.println(e.text());
@@ -56,5 +56,18 @@ public class HelpServer {
         }
         System.out.println("Help not found");
         return ("<html><body><h1>No help for " + topic + "</h1></body></html>");
+    }
+    public String getHelpText(String topic){
+        
+        for (Element e : doc.select("h1,h2,h3")) {
+            System.out.println(e.text());
+            if (e.text().equalsIgnoreCase(topic)) {
+                
+                 String rv = e.toString() + "\n" + e.nextSibling().toString();
+                
+                return rv;
+            }
+        }
+        return topic + " not found";
     }
 }

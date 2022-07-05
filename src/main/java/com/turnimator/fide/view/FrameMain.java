@@ -80,12 +80,20 @@ public class FrameMain extends JFrame {
     private final ArrayList<ConnectionCloseEvent> _connectionCloseHandlerList = new ArrayList<>();
     private final ArrayList<RescanEvent> _rescanHandlerList = new ArrayList<>();
 
+    private final ArrayList<WordClickEvent> _wordClickHandlerList = new ArrayList<>();
+    public void addWordClickEventHandler(WordClickEvent ev){
+        _wordClickHandlerList.add(ev);
+    }
+    public void bubbleWordClickEvent(String word){
+        for(WordClickEvent ev:_wordClickHandlerList){
+            ev.wordClicked(word);
+        }
+    }
+    
     private final ArrayList<WordsRequestEvent> _wordsRequestHandlerList = new ArrayList<>();
-
     public void addWordsRequestHandler(WordsRequestEvent ev) {
         _wordsRequestHandlerList.add(ev);
     }
-
     public void bubbleWordsRequest(ConnectionId id) {
         for (WordsRequestEvent ev : _wordsRequestHandlerList) {
             ev.requestWords(id);
@@ -267,7 +275,7 @@ public class FrameMain extends JFrame {
             exec_path = new File(exec_path).getParent();
         }
         System.setProperty("fide.execPath", exec_path);
-        
+
         System.out.println("Exec_path: " + exec_path);
 
         String icon_path = exec_path + slash + ".." + slash;
@@ -363,13 +371,13 @@ public class FrameMain extends JFrame {
         _panelWords.addWordClickHandleer(new WordClickEvent() {
             @Override
             public void wordClicked(String word) {
-                JOptionPane.showMessageDialog(rootPane, "Not implemented yet");
+                bubbleWordClickEvent(word);
             }
         });
         _mainPanelRight.add(_panelWords);
 
         _statusPanel.setLayout(new FlowLayout());
-        _statusPanel.setMaximumSize(new Dimension(600, 64));
+        
         _statusLabel.setAlignmentX(LEFT_ALIGNMENT);
         _statusPanel.add(_statusLabel);
         _statusPanel.add(_statusProgressBar);
@@ -450,7 +458,7 @@ public class FrameMain extends JFrame {
         }
 
         _currentEditorPanel = new PanelEditor(id);
-        _currentEditorPanel.setSize(new Dimension(600, 400));
+        //_currentEditorPanel.setSize(new Dimension(600, 400));
         _editorPanelMap.put(id, _currentEditorPanel);
         _tabbedEditorPane.addTab(id.toString(), _currentEditorPanel);
         _currentEditorPanel.addTransmitEventHandler(new TransmitEvent() {
@@ -546,5 +554,9 @@ public class FrameMain extends JFrame {
             return _currentEditorPanel.getEditorText();
         }
         return null;
+    }
+
+    public void setHelp(String word, String helpText) {
+        _panelWords.setHelp(word, helpText);
     }
 }

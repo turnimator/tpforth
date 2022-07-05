@@ -17,6 +17,7 @@ import com.turnimator.fide.events.SerialConnectionRequestEvent;
 import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import com.turnimator.fide.events.UploadEvent;
+import com.turnimator.fide.events.WordClickEvent;
 import com.turnimator.fide.events.WordsRequestEvent;
 import com.turnimator.fide.model.HelpServer;
 import com.turnimator.fide.view.FrameMain;
@@ -29,6 +30,8 @@ import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.swing.JOptionPane;
 
@@ -248,6 +251,15 @@ public final class Controller {
             @Override
             public void transmit(ConnectionId id, String text) {
                 _dispatcher.send(id, text);
+            }
+        });
+        _frameMain.addWordClickEventHandler(new WordClickEvent() {
+            @Override
+            public void wordClicked(String word) {
+                Logger.getAnonymousLogger().log(Level.INFO, "Looking for help on:" + word);
+                String help = _helpServer.getHelpText(word);
+                Logger.getAnonymousLogger().log(Level.INFO, "HelpServer returned:" + help);
+                _frameMain.setHelp(word, help);
             }
         });
     }
