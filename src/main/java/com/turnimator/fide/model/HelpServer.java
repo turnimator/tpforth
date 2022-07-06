@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.select.Elements;
 
 /**
  *
@@ -33,6 +35,7 @@ public class HelpServer {
         }
         String p = System.getProperty("fide.execPath");
         Logger.getAnonymousLogger().log(Level.INFO, p);
+        doc.outputSettings().prettyPrint(false);
     }
 
     public String getHelpHtml(String topic) {
@@ -57,21 +60,60 @@ public class HelpServer {
         System.out.println("Help not found");
         return ("<html><body><h1>No help for " + topic + "</h1></body></html>");
     }
-    public String getHelpText(String topic){
-        
+
+    public String getHelpText(String topic) {
+
         for (Element e : doc.select("h1,h2,h3")) {
             System.out.println(e.text());
             if (e.text().equalsIgnoreCase(topic)) {
-                
-                 String rv = e.toString() + "\n" + e.nextSibling().toString();
-                
+
+                String rv = e.toString() + "\n" + e.nextSibling().toString();
+
                 return rv;
             }
         }
         return topic + " not found";
     }
 
-    public String getExample(String word) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void p(String s) {
+        System.out.println(s);
+    }
+
+    public String getExample(String topic) {
+        Elements select = doc.select("H2");
+        String rv = "";
+        for (Element e : select) {
+            if (e.ownText().equalsIgnoreCase(topic)) {
+                System.out.println("ownText():" + e.ownText());
+
+                p("Text:" + e.nextSibling().toString());
+
+                for (Element e2 : e.nextElementSiblings()) {
+                    p("e2.text():" + e2.text());
+                    p("e2.nextSibling.toString()" + e2.nextSibling().toString());
+                    if (e2.text().equalsIgnoreCase("Examples")) {
+                        Node n = e2.nextSibling();
+                        while (n != null) {
+                            p("Adding node to return value" + n.toString());
+                            rv += n.toString();
+                            if (n.nextSibling() == null) {
+                                return rv;
+                            }
+                            n = n.nextSibling();
+                            if (n.nextSibling().toString().startsWith("<")){
+                                return rv;
+                            }
+                        }
+
+                    }
+                    if (e2.tagName().equalsIgnoreCase("h2")) {
+                        p("END");
+                        break;
+                    }
+
+                }
+            }
+        }
+        return topic;
     }
 }

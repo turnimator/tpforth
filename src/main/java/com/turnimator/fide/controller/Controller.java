@@ -267,6 +267,8 @@ public final class Controller {
             @Override
             public void requestExample(String word) {
                 String helpText = _helpServer.getExample(word);
+                Logger.getAnonymousLogger().log(Level.INFO, "Found example: " + helpText);
+                _frameMain.appendProgramText(helpText);
             }
         });
     }

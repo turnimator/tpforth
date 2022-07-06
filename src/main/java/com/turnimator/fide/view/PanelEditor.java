@@ -8,7 +8,9 @@ import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.events.ExampleRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -55,6 +57,8 @@ public class PanelEditor extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON3){
+                    Point p = getMousePosition();
+                    _popup.setLocation(p);
                     _popup.setPopupMenuVisible(true);
                 }
             }
