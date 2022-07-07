@@ -173,7 +173,11 @@ public class PanelEditor extends JPanel {
         JMenuItem _copyItem = new JMenuItem(new AbstractAction("Copy") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                _clipboard.setContents(new StringSelection(""), new ClipboardOwner() {
+                String text = _editorPane.getSelectedText();
+                if (text == null || text.length() == 0){
+                    return;
+                }
+                _clipboard.setContents(new StringSelection(text), new ClipboardOwner() {
                     @Override
                     public void lostOwnership(Clipboard clipboard, Transferable contents) {
                         
@@ -187,7 +191,11 @@ public class PanelEditor extends JPanel {
         JMenuItem _cutItem = new JMenuItem(new AbstractAction("Cut") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                _clipboard.setContents(new StringSelection(""), new ClipboardOwner() {
+                String text = _editorPane.getSelectedText();
+                if (text == null || text.length() == 0){
+                    return;
+                }
+                _clipboard.setContents(new StringSelection(text), new ClipboardOwner() {
                     @Override
                     public void lostOwnership(Clipboard clipboard, Transferable contents) {
                         
