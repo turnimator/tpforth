@@ -285,7 +285,7 @@ public class FrameMain extends JFrame {
         if (exec_path.endsWith(".jar")) {
             exec_path = new File(exec_path).getParent();
         }
-        System.setProperty("fide.execPath", exec_path);
+       // System.setProperty("fide.execPath", exec_path);
 
         System.out.println("Exec_path: " + exec_path);
 

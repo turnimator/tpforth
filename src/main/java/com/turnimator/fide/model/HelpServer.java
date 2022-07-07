@@ -100,7 +100,7 @@ public class HelpServer {
                                 return rv;
                             }
                             n = n.nextSibling();
-                            if (n.nextSibling().toString().startsWith("<")){
+                            if (n.nextSibling().toString().startsWith("<")){  // probably dont need this
                                 return rv;
                             }
                         }
