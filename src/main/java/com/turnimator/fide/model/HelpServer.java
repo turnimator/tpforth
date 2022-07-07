@@ -96,7 +96,7 @@ public class HelpServer {
                         while (n != null) {
                             p("Adding node to return value" + n.toString());
                             rv += n.toString();
-                            if (n.nextSibling() == null) {
+                            if (n.nextSibling() == null || n.nextSibling().toString().startsWith("<")) {
                                 return rv;
                             }
                             n = n.nextSibling();
