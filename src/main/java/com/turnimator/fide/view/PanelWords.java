@@ -8,25 +8,17 @@ import java.lang.System;
 import com.turnimator.fide.events.WordClickEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JList;
-import javax.swing.ListModel;
-import javax.swing.DefaultListModel;
 
 import javax.swing.border.BevelBorder;
 import javax.swing.BoxLayout;
-import javax.swing.JEditorPane;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
@@ -34,7 +26,6 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 /**
@@ -67,9 +58,9 @@ public class PanelWords extends JPanel {
             return;
         }
         for (WordClickEvent ev : _wordRequestHandlerList) {
-            TreePath parentPath = selectionPath.getParentPath();
-            if (parentPath != null) {
-                ev.wordClicked(selectionPath.getParentPath().getLastPathComponent().toString());
+            int c = _model.getChildCount(selectionPath.getLastPathComponent());
+            if (c == 0) {
+                ev.wordClicked(selectionPath.getLastPathComponent().toString());
             }
         }
     }
@@ -84,7 +75,7 @@ public class PanelWords extends JPanel {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) _model.getRoot();
         for (String s : _wordSet) {
             DefaultMutableTreeNode child = new DefaultMutableTreeNode(s);
-            child.add(new DefaultMutableTreeNode("Click Me"));
+            //child.add(new DefaultMutableTreeNode("Click Me"));
             node.add(child);
         }
         _model.reload();
@@ -100,7 +91,6 @@ public class PanelWords extends JPanel {
             if (word.equals((String) node.getUserObject())) {
                 Logger.getAnonymousLogger().log(Level.INFO, "Found: " + word);
                 if (node.getChildCount() < 2) {
-
                     DefaultMutableTreeNode helpNode = new DefaultMutableTreeNode(text);
                     node.add(helpNode);
                     _model.reload();
@@ -118,11 +108,15 @@ public class PanelWords extends JPanel {
 
         _wordsTree = new JTree();
         _wordsTree.setModel(_model);
-        
+
         _wordsTree.addTreeExpansionListener(new TreeExpansionListener() {
             @Override
             public void treeExpanded(TreeExpansionEvent event) {
-
+                TreePath path = event.getPath();
+                if (path.getPath().length < 2) {
+                    System.out.println(path);
+                    //child.add(new DefaultMutableTreeNode("Click Me"));
+                }
             }
 
             @Override
@@ -142,8 +136,7 @@ public class PanelWords extends JPanel {
 
         this.setBorder(new BevelBorder(BevelBorder.LOWERED));
 
-        
-        _scrollPane = new JScrollPane(_wordsTree, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+        _scrollPane = new JScrollPane(_wordsTree, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         _scrollPane.setMaximumSize(new Dimension(400, 800));
 
         add(_scrollPane);

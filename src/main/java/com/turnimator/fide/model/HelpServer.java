@@ -67,7 +67,7 @@ public class HelpServer {
             System.out.println(e.text());
             if (e.text().equalsIgnoreCase(topic)) {
 
-                String rv = e.toString() + "\n" + e.nextSibling().toString();
+                String rv = e.nextSibling().toString();
 
                 return rv;
             }
