@@ -9,16 +9,25 @@ import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.events.ExampleRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
 import java.awt.Cursor;
+import java.awt.datatransfer.StringSelection;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.TextField;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -38,6 +47,10 @@ public class PanelEditor extends JPanel {
     ArrayList<ExampleRequestEvent> _exampleRequestHandlerList = new ArrayList<>();
     private final ConnectionId _connectionId;
     
+    
+    Clipboard _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    DataFlavor _dataFlavor = DataFlavor.stringFlavor;
+
     private JMenu _popup;
     private JEditorPane _editorPane;
     private JLabel replPrompt;
@@ -46,6 +59,7 @@ public class PanelEditor extends JPanel {
     
     public PanelEditor(ConnectionId id) {
         _connectionId = id;
+        
         initComponents();
     }
 
@@ -57,7 +71,7 @@ public class PanelEditor extends JPanel {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON3){
-                    Point p = getMousePosition();
+                    Point p = _editorPane.getMousePosition();
                     _popup.setLocation(p);
                     _popup.setPopupMenuVisible(true);
                 }
@@ -156,6 +170,57 @@ public class PanelEditor extends JPanel {
 
     private void createMenu() {
         _popup = new JMenu();
+        JMenuItem _copyItem = new JMenuItem(new AbstractAction("Copy") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _clipboard.setContents(new StringSelection(""), new ClipboardOwner() {
+                    @Override
+                    public void lostOwnership(Clipboard clipboard, Transferable contents) {
+                        
+                    }
+                });
+                _popup.setPopupMenuVisible(false);
+            }
+        });
+        _popup.add(_copyItem);
+        
+        JMenuItem _cutItem = new JMenuItem(new AbstractAction("Cut") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                _clipboard.setContents(new StringSelection(""), new ClipboardOwner() {
+                    @Override
+                    public void lostOwnership(Clipboard clipboard, Transferable contents) {
+                        
+                    }
+                });
+                _popup.setPopupMenuVisible(false);
+            }
+        });
+        _popup.add(_cutItem);
+        
+        JMenuItem _pasteItem = new JMenuItem(new AbstractAction("Paste") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String s2 = "";
+                try {
+                    s2 = (String) _clipboard.getData(_dataFlavor);
+                } catch (UnsupportedFlavorException ex) {
+                    Logger.getLogger(PanelEditor.class.getName()).log(Level.SEVERE, null, ex);
+                    return;
+                } catch (IOException ex) {
+                    Logger.getLogger(PanelEditor.class.getName()).log(Level.SEVERE, null, ex);
+                    return;
+                }
+                int pos = _editorPane.getCaretPosition();
+                String text = _editorPane.getText();
+                String s1 = text.substring(0, pos);
+                String s3 = text.substring(pos, text.length());
+                _editorPane.setText(s1 + s2 + s3);
+                _popup.setPopupMenuVisible(false);
+            }
+        });
+        _popup.add(_pasteItem);
+        
         JMenuItem _exampleItem = new JMenuItem(new AbstractAction("Example") {
             @Override
             public void actionPerformed(ActionEvent e) {

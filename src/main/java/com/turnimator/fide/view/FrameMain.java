@@ -69,8 +69,8 @@ public class FrameMain extends JFrame {
 
     String slash = System.getProperty("file.separator");
 
-    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    DataFlavor dataFlavor = DataFlavor.stringFlavor;
+    Clipboard _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+    DataFlavor _dataFlavor = DataFlavor.stringFlavor;
 
     private ArrayList<SerialConnectionRequestEvent> _serialConnectRequestHandlerList = new ArrayList<>();
     private ArrayList<DisconnectEvent> _disconnectHandlerList = new ArrayList<>();
@@ -226,7 +226,7 @@ public class FrameMain extends JFrame {
                 PanelEditor editor = _currentEditorPanel;
                 if (editor != null) {
                     String s = editor.getSelectedText();
-                    clipboard.setContents(new StringSelection(s), new ClipboardOwner() {
+                    _clipboard.setContents(new StringSelection(s), new ClipboardOwner() {
                         @Override
                         public void lostOwnership(Clipboard clipboard, Transferable contents) {
 
@@ -241,7 +241,7 @@ public class FrameMain extends JFrame {
                 PanelEditor editor = _currentEditorPanel;
                 if (editor != null) {
                     String s = editor.getSelectedText();
-                    clipboard.setContents(new StringSelection(s), new ClipboardOwner() {
+                    _clipboard.setContents(new StringSelection(s), new ClipboardOwner() {
                         @Override
                         public void lostOwnership(Clipboard clipboard, Transferable contents) {
 
@@ -258,7 +258,7 @@ public class FrameMain extends JFrame {
                 String data = "";
                 if (editor != null) {
                     try {
-                        data = (String) clipboard.getData(DataFlavor.stringFlavor);
+                        data = (String) _clipboard.getData(DataFlavor.stringFlavor);
                     } catch (UnsupportedFlavorException | IOException ex) {
                         Logger.getLogger(FrameMain.class.getName()).log(Level.SEVERE, null, ex);
                     }
