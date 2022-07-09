@@ -34,7 +34,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
 
         <h3>Examples</h3>
 
-        <pre>CREATE new-word1
+       CREATE new-word1
 
         CREATE new-word2 1 cells allot  \ reserve 1 cell - initial value undefined
         CREATE new-word3 4 ,            \ reserve 1 cell and initialize it (to 4) 
@@ -61,8 +61,6 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
         b 3 array-get .     \ print the contents of array b's 3rd cell
 
 
-        <br>
-        </pre> 
         <h3>See also</h3>
         <a href='#does&gt;'>Does&gt;</a> 
 
@@ -187,7 +185,7 @@ That feels like making a request to Forth.
         digitalRead ( pin -- value)   Read GPIO pin state
         <h3>Description</h3>
         <h3>Examples</h3>
-        \ read pin# 5
+        \ read pin# 5 and leave the result on the stack
         5 digitalRead
 
         <h2>digitalWrite</h2>
@@ -199,6 +197,7 @@ That feels like making a request to Forth.
         pinMode ( pin mode -- )   Set GPIO pin mode
         <h3>Description</h3>
         <h3>Examples</h3>
+        
 
         <h2>analogRead</h2>
         analogRead ( pin -- n )   Analog read from 0-4095

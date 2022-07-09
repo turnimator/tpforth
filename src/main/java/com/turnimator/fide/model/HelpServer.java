@@ -81,6 +81,9 @@ public class HelpServer {
 
     public String getExample(String topic) {
         Elements select = doc.select("H2");
+        topic = topic.replaceAll(">", "&gt;");
+        topic = topic.replaceAll("<", "&lt;");
+        
         String rv = "";
         for (Element e : select) {
             if (e.ownText().equalsIgnoreCase(topic)) {
@@ -114,6 +117,6 @@ public class HelpServer {
                 }
             }
         }
-        return topic;
+        return rv;
     }
 }

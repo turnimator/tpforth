@@ -211,7 +211,9 @@ public final class Controller {
         _frameMain.addConnectionCloseEventHandler(new ConnectionCloseEvent() {
             @Override
             public void close(String id) {
-                _dispatcher.disconnect(id);
+                if (_frameMain.getConnectionType() != ConnectionType.None){
+                    _dispatcher.disconnect(id);
+                }
                 _frameMain.removeEditorTab(id);
             }
         });

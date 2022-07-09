@@ -42,20 +42,23 @@ import javax.swing.JScrollPane;
  * @author atle
  */
 public class PanelEditor extends JPanel {
+
+    private String _programText = "";
     ArrayList<TransmitEvent> _transmitHandlerList = new ArrayList<>();
     ArrayList<ConnectionCloseEvent> _closeHandlerList = new ArrayList<>();
     ArrayList<ExampleRequestEvent> _exampleRequestHandlerList = new ArrayList<>();
     private final String _connectionId;
     private ConnectionType _connectionType = ConnectionType.None;
-    
+
     Clipboard _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     DataFlavor _dataFlavor = DataFlavor.stringFlavor;
 
     private JMenu _popup;
     private JEditorPane _editorPane;
-    private JLabel replPrompt;
-    private TextField replTextfield;
-    private JButton closeButton;
+    private JLabel _replPrompt;
+    private TextField _replTextfield;
+    private JButton _closeButton;
+    private JButton _clearOutputButton;
     
     public PanelEditor(String id, ConnectionType t) {
         _connectionId = id;
@@ -70,7 +73,7 @@ public class PanelEditor extends JPanel {
         _editorPane.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON3){
+                if (e.getButton() == MouseEvent.BUTTON3) {
                     Point p = _editorPane.getMousePosition();
                     _popup.setLocation(p);
                     _popup.setPopupMenuVisible(true);
@@ -79,83 +82,104 @@ public class PanelEditor extends JPanel {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                
+
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                
+
             }
 
             @Override
             public void mouseEntered(MouseEvent e) {
-                
+
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                
+
             }
         });
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        
-        
-        
+
         JScrollPane scrollPane = new JScrollPane(_editorPane);
-        
+
         add(scrollPane);
-        replPrompt = new JLabel("REPL");
-        add(replPrompt);
-        replTextfield = new TextField();
-        replTextfield.setMaximumSize(new Dimension(400, 64));
-        replTextfield.addActionListener(new AbstractAction() {
+        _replPrompt = new JLabel("REPL");
+        add(_replPrompt);
+        _replTextfield = new TextField();
+        _replTextfield.setMaximumSize(new Dimension(400, 64));
+        _replTextfield.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-             for(TransmitEvent ev: _transmitHandlerList){
-                 ev.transmit(_connectionId, replTextfield.getText());
-             }
+                for (TransmitEvent ev : _transmitHandlerList) {
+                    ev.transmit(_connectionId, _replTextfield.getText());
+                }
             }
         });
-        add(replTextfield);
-        closeButton = new JButton(new AbstractAction("Close") {
+        add(_replTextfield);
+        _closeButton = new JButton(new AbstractAction("Close") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for(ConnectionCloseEvent ev : _closeHandlerList){
+                for (ConnectionCloseEvent ev : _closeHandlerList) {
                     ev.close(_connectionId);
                 }
             }
         });
-        add(closeButton);
+        
+        _clearOutputButton = new JButton(new AbstractAction("Clear Output") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clearOutputText();
+            }
+        });
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+        buttonPanel.add(_closeButton);
+        buttonPanel.add(_clearOutputButton);
+        add(buttonPanel);
 
     }
-    
-    public void addCloseEventHandler(ConnectionCloseEvent ev){
+
+    public void addCloseEventHandler(ConnectionCloseEvent ev) {
         _closeHandlerList.add(ev);
     }
-    
-    public void addTransmitEventHandler(TransmitEvent e){
+
+    public void addTransmitEventHandler(TransmitEvent e) {
         _transmitHandlerList.add(e);
     }
 
-    public void appendText(String text) {
+    public void appendOutputText(String text) {
         String text1 = _editorPane.getText();
         _editorPane.setText(text1 + "\n" + text);
-        _editorPane.setCaretPosition(text1.length()+text.length());
+        _editorPane.setCaretPosition(text1.length() + text.length());
     }
 
+    public void appendProgramText(String text) {
+        _programText += text + "\n";
+        String text1 = _editorPane.getText();
+        _editorPane.setText(text1 + "\n" + text);
+        _editorPane.setCaretPosition(text1.length() + text.length());
+    }
+
+    public void clearOutputText(){
+        _editorPane.setText(_programText);
+        _editorPane.setCaretPosition(_programText.length());
+    }
+    
     public String getEditorText() {
         return _editorPane.getText();
     }
 
     public String getConnectionId() {
-       return _connectionId;
+        return _connectionId;
     }
 
     public String getSelectedText() {
         return _editorPane.getSelectedText();
     }
-    
-    public void paste(String s){
+
+    public void paste(String s) {
         _editorPane.setText(_editorPane.getText() + s);
     }
 
@@ -174,38 +198,38 @@ public class PanelEditor extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String text = _editorPane.getSelectedText();
-                if (text == null || text.length() == 0){
+                if (text == null || text.length() == 0) {
                     return;
                 }
                 _clipboard.setContents(new StringSelection(text), new ClipboardOwner() {
                     @Override
                     public void lostOwnership(Clipboard clipboard, Transferable contents) {
-                        
+
                     }
                 });
                 _popup.setPopupMenuVisible(false);
             }
         });
         _popup.add(_copyItem);
-        
+
         JMenuItem _cutItem = new JMenuItem(new AbstractAction("Cut") {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String text = _editorPane.getSelectedText();
-                if (text == null || text.length() == 0){
+                if (text == null || text.length() == 0) {
                     return;
                 }
                 _clipboard.setContents(new StringSelection(text), new ClipboardOwner() {
                     @Override
                     public void lostOwnership(Clipboard clipboard, Transferable contents) {
-                        
+
                     }
                 });
                 _popup.setPopupMenuVisible(false);
             }
         });
         _popup.add(_cutItem);
-        
+
         JMenuItem _pasteItem = new JMenuItem(new AbstractAction("Paste") {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -228,7 +252,7 @@ public class PanelEditor extends JPanel {
             }
         });
         _popup.add(_pasteItem);
-        
+
         JMenuItem _exampleItem = new JMenuItem(new AbstractAction("Example") {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -241,12 +265,13 @@ public class PanelEditor extends JPanel {
         });
         _popup.add(_exampleItem);
     }
-    
-    public void addExampleRequestHandler(ExampleRequestEvent ev){
+
+    public void addExampleRequestHandler(ExampleRequestEvent ev) {
         _exampleRequestHandlerList.add(ev);
     }
-    private void bubbleExampleRequest(String word){
-        for(ExampleRequestEvent ev:_exampleRequestHandlerList){
+
+    private void bubbleExampleRequest(String word) {
+        for (ExampleRequestEvent ev : _exampleRequestHandlerList) {
             ev.requestExample(word);
         }
     }
@@ -254,5 +279,5 @@ public class PanelEditor extends JPanel {
     ConnectionType getConnectionType() {
         return _connectionType;
     }
-    
+
 }

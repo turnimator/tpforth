@@ -524,14 +524,14 @@ public class FrameMain extends JFrame {
         ensurePanelEditor(id);
         switch (_responseOutputType) {
             case Editor:
-                _currentEditorPanel.appendText(text);
+                _currentEditorPanel.appendOutputText(text);
                 break;
             case Words:
                 _panelWords.addWords(text);
                 _panelWords.setVisible(true);
                 if (text.length() < 10 && text.contains("ok")) {
                     _responseOutputType = ResponseOutputType.Editor;
-                    _currentEditorPanel.appendText(text);
+                    _currentEditorPanel.appendOutputText(text);
                 }
                 break;
 
@@ -543,7 +543,7 @@ public class FrameMain extends JFrame {
     }
 
     public void appendProgramText(String string) {
-        appendResponseText(_currentEditorPanel.getConnectionId(), string);
+        _currentEditorPanel.appendProgramText(string);
     }
 
     public void setPogress(int max, int min, int i) {
