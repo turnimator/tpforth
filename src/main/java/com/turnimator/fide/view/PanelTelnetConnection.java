@@ -4,7 +4,6 @@
  */
 package com.turnimator.fide.view;
 
-import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.TelnetConnectionRequestEvent;
@@ -29,7 +28,7 @@ public class PanelTelnetConnection extends Panel {
     private final ArrayList<ConnectionCloseEvent> disconnectHandlerList = new ArrayList<>();
     JPanel buttonPanel = new JPanel();
     JPanel textPanel = new JPanel();
-    
+    private ConnectionType _connectionType = ConnectionType.Telnet;
     JTextField urlTextField;
     MaskFormatter mask;
     
@@ -74,7 +73,8 @@ public class PanelTelnetConnection extends Panel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for(ConnectionCloseEvent ev:disconnectHandlerList){
-                    ev.close(new ConnectionId(ConnectionType.Telnet, urlTextField.getText()));
+                    Logger.getAnonymousLogger().log(Level.SEVERE, "Needs a String connectionIdBuilder()");
+                    ev.close("BUG");
                 }
             }
         });

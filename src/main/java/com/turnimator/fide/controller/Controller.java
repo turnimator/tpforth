@@ -4,7 +4,6 @@
  */
 package com.turnimator.fide.controller;
 
-import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.events.ConnectionsDisplayEvent;
 import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.enums.ResponseOutputType;
@@ -55,12 +54,12 @@ public final class Controller {
         _dispatcher.createCommunicator(ConnectionType.Serial, "", "");
         _dispatcher.addReceiveEventHandler(new ReceiveEvent() {
             @Override
-            public void receive(ConnectionId id, String text) {
+            public void receive(String id, String text) {
                 _frameMain.appendResponseText(id, text);
             }
         });
         scanPorts();
-        _frameMain.addEditorTab(new ConnectionId(ConnectionType.None, "Scratchpad"));
+        _frameMain.addEditorTab("Scratchpad", ConnectionType.None);
         _helpServer = new HelpServer();
     }
 
@@ -100,7 +99,7 @@ public final class Controller {
                 _lastDirectory = f.getDirectory();
 
                 System.setProperty("LastDir", _lastDirectory);
-                ConnectionId id = _dispatcher.getConnectionId();
+                String id = _dispatcher.getConnectionId();
                 if (id != null) {
                     _frameMain.setConnectionId(id);
                 }
@@ -126,7 +125,7 @@ public final class Controller {
 
         _frameMain.addFileSaveHandler(new FileSaveEvent() {
             @Override
-            public void save(ConnectionId source) {
+            public void save(String source) {
                 FileDialog f = new FileDialog(_frameMain, "Open", FileDialog.SAVE);
                 f.setDirectory(_lastDirectory);
                 f.setFilenameFilter(new FilenameFilter() {
@@ -183,13 +182,13 @@ public final class Controller {
                  * TELNET COMMUNICATOR AND EDITOR ADDED TO THE TABBED PANE
                  */
                 _dispatcher.createCommunicator(ConnectionType.Telnet, host, port);
-                ConnectionId connectionId = _dispatcher.connect();
+                String connectionId = _dispatcher.connect();
                 if (connectionId == null) {
                     JOptionPane.showMessageDialog(_frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
                     return;
                 }
                 _frameMain.setConnectionsVisible(false);
-                _frameMain.addEditorTab(connectionId);
+                _frameMain.addEditorTab(connectionId, ConnectionType.Telnet);
                 _frameMain.setEditorTab(connectionId);
             }
         });
@@ -199,19 +198,19 @@ public final class Controller {
             @Override
             public void connect(String port, int bitRate) {
                 _dispatcher.createCommunicator(ConnectionType.Serial, "", port);
-                ConnectionId connectionId = _dispatcher.connect();
+                String connectionId = _dispatcher.connect();
                 if (connectionId == null) {
                     JOptionPane.showMessageDialog(_frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
                     return;
                 }
                 _frameMain.setConnectionsVisible(false);
-                _frameMain.addEditorTab(connectionId);
+                _frameMain.addEditorTab(connectionId, ConnectionType.Serial);
                 _frameMain.setEditorTab(connectionId);
             }
         });
         _frameMain.addConnectionCloseEventHandler(new ConnectionCloseEvent() {
             @Override
-            public void close(ConnectionId id) {
+            public void close(String id) {
                 _dispatcher.disconnect(id);
                 _frameMain.removeEditorTab(id);
             }
@@ -224,7 +223,7 @@ public final class Controller {
         addConnectionEventHandlers();
         _frameMain.addUploadRequestHandler(new UploadEvent() {
             @Override
-            public void upload(ConnectionId id, String text) {
+            public void upload(String id, String text) {
                 _dispatcher.send(id, text);
             }
         });
@@ -233,7 +232,7 @@ public final class Controller {
          */
         _frameMain.addWordsRequestHandler(new WordsRequestEvent() {
             @Override
-            public void requestWords(ConnectionId id) {
+            public void requestWords(String id) {
                 _frameMain.setOutputType(ResponseOutputType.Words);
                 _dispatcher.send(id, "words");
             }
@@ -250,7 +249,7 @@ public final class Controller {
         });
         _frameMain.addTransmitEventHandler(new TransmitEvent() {
             @Override
-            public void transmit(ConnectionId id, String text) {
+            public void transmit(String id, String text) {
                 _dispatcher.send(id, text);
             }
         });

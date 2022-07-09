@@ -4,12 +4,10 @@
  */
 package com.turnimator.fide.events;
 
-import com.turnimator.fide.ConnectionId;
-
 /**
  *
  * @author atle
  */
 public abstract class ConnectionCloseEvent {
-    public abstract void close(ConnectionId id);
+    public abstract void close(String id);
 }

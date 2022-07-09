@@ -4,7 +4,7 @@
  */
 package com.turnimator.fide.view;
 
-import com.turnimator.fide.ConnectionId;
+import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.events.ExampleRequestEvent;
 import com.turnimator.fide.events.TransmitEvent;
@@ -45,8 +45,8 @@ public class PanelEditor extends JPanel {
     ArrayList<TransmitEvent> _transmitHandlerList = new ArrayList<>();
     ArrayList<ConnectionCloseEvent> _closeHandlerList = new ArrayList<>();
     ArrayList<ExampleRequestEvent> _exampleRequestHandlerList = new ArrayList<>();
-    private final ConnectionId _connectionId;
-    
+    private final String _connectionId;
+    private ConnectionType _connectionType = ConnectionType.None;
     
     Clipboard _clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     DataFlavor _dataFlavor = DataFlavor.stringFlavor;
@@ -57,9 +57,9 @@ public class PanelEditor extends JPanel {
     private TextField replTextfield;
     private JButton closeButton;
     
-    public PanelEditor(ConnectionId id) {
+    public PanelEditor(String id, ConnectionType t) {
         _connectionId = id;
-        
+        _connectionType = t;
         initComponents();
     }
 
@@ -147,7 +147,7 @@ public class PanelEditor extends JPanel {
         return _editorPane.getText();
     }
 
-    public ConnectionId getConnectionId() {
+    public String getConnectionId() {
        return _connectionId;
     }
 
@@ -249,6 +249,10 @@ public class PanelEditor extends JPanel {
         for(ExampleRequestEvent ev:_exampleRequestHandlerList){
             ev.requestExample(word);
         }
+    }
+
+    ConnectionType getConnectionType() {
+        return _connectionType;
     }
     
 }

@@ -4,12 +4,10 @@
  */
 package com.turnimator.fide.events;
 
-import com.turnimator.fide.ConnectionId;
-
 /**
  *
  * @author atle
  */
 public abstract class WordsRequestEvent {
-    public abstract void requestWords(ConnectionId id);
+    public abstract void requestWords(String id);
 }

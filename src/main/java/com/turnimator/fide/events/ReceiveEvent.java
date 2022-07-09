@@ -4,12 +4,10 @@
  */
 package com.turnimator.fide.events;
 
-import com.turnimator.fide.ConnectionId;
-
 /**
  *
  * @author atle
  */
 public abstract class ReceiveEvent {
-    public abstract void receive(ConnectionId id, String text);
+    public abstract void receive(String id, String text);
 }

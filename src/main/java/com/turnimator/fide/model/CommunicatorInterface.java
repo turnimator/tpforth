@@ -4,7 +4,7 @@
  */
 package com.turnimator.fide.model;
 
-import com.turnimator.fide.ConnectionId;
+import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ReceiveEvent;
 import java.util.List;
 
@@ -15,8 +15,17 @@ import java.util.List;
 public interface CommunicatorInterface {
     void setHost(String host); // Nor used for serial connections
     void setPort(String port);
-    ConnectionId connect();
-    ConnectionId getId();
+
+    /**
+     *
+     * @param t
+     * @param host
+     * @param port
+     * @return
+     */
+    
+    String connect();
+    String getId();
     boolean disconnect();
     boolean send(String s);
     void addReceiveEventHandler(ReceiveEvent evt);

@@ -4,7 +4,6 @@
  */
 package com.turnimator.fide.view;
 
-import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.enums.ResponseOutputType;
 import com.turnimator.fide.events.ConnectionCloseEvent;
@@ -64,7 +63,7 @@ public class FrameMain extends JFrame {
 
     private ResponseOutputType _responseOutputType = ResponseOutputType.Editor;
 
-    private final HashMap<ConnectionId, PanelEditor> _editorPanelMap = new HashMap<>();
+    private final HashMap<String, PanelEditor> _editorPanelMap = new HashMap<>();
     private PanelEditor _currentEditorPanel = null;
 
     String slash = System.getProperty("file.separator");
@@ -95,7 +94,7 @@ public class FrameMain extends JFrame {
     public void addWordsRequestHandler(WordsRequestEvent ev) {
         _wordsRequestHandlerList.add(ev);
     }
-    private void bubbleWordsRequest(ConnectionId id) {
+    private void bubbleWordsRequest(String id) {
         for (WordsRequestEvent ev : _wordsRequestHandlerList) {
             ev.requestWords(id);
         }
@@ -129,7 +128,7 @@ public class FrameMain extends JFrame {
     private final JProgressBar _statusProgressBar = new JProgressBar();
     private PanelWords _panelWords;
 
-    private PanelEditor ensurePanelEditor(ConnectionId id) {
+    private PanelEditor ensurePanelEditor(String id) {
         if (!id.equals(_currentEditorPanel.getConnectionId())) {
             _currentEditorPanel = _editorPanelMap.get(id);
         }
@@ -318,7 +317,7 @@ public class FrameMain extends JFrame {
                 if (_currentEditorPanel == null) {
                     return;
                 }
-                if (_currentEditorPanel.getConnectionId().getConnectionType() == ConnectionType.None) {
+                if (_currentEditorPanel.getConnectionType() == ConnectionType.None) {
                     JOptionPane.showMessageDialog(rootPane, "Can't upload without a connection.");
                     return;
                 }
@@ -403,7 +402,7 @@ public class FrameMain extends JFrame {
         _uploadRequestHandlerList.add(ev);
     }
 
-    public void setConnectionId(ConnectionId sc) {
+    public void setConnectionId(String sc) {
         ensurePanelEditor(sc);
     }
 
@@ -447,7 +446,7 @@ public class FrameMain extends JFrame {
         _transmitEventHandlerList.add(ev);
     }
 
-    public void setEditorTab(ConnectionId id) {
+    public void setEditorTab(String id) {
         ensurePanelEditor(id);
         for (int idx = 0; idx < _tabbedEditorPane.getTabCount(); idx++) {
             String titleAt = _tabbedEditorPane.getTitleAt(idx);
@@ -463,22 +462,18 @@ public class FrameMain extends JFrame {
      *
      * @param id
      */
-    public void addEditorTab(ConnectionId id) {
+    public void addEditorTab(String id, ConnectionType t) {
         if (id == null) {
             throw new NullPointerException("ConnectionId is null");
         }
 
-        _currentEditorPanel = new PanelEditor(id);
+        _currentEditorPanel = new PanelEditor(id, t);
         //_currentEditorPanel.setSize(new Dimension(600, 400));
         _editorPanelMap.put(id, _currentEditorPanel);
         _tabbedEditorPane.addTab(id.toString(), _currentEditorPanel);
         _currentEditorPanel.addTransmitEventHandler(new TransmitEvent() {
             @Override
-            public void transmit(ConnectionId id, String text) {
-                if (id.getConnectionType() == ConnectionType.None) {
-                    return;
-                }
-
+            public void transmit(String id, String text) {
                 for (TransmitEvent ev : _transmitEventHandlerList) {
                     ev.transmit(id, text);
                 }
@@ -486,7 +481,7 @@ public class FrameMain extends JFrame {
         });
         _currentEditorPanel.addCloseEventHandler(new ConnectionCloseEvent() {
             @Override
-            public void close(ConnectionId id) {
+            public void close(String id) {
                 for (ConnectionCloseEvent ev : _connectionCloseHandlerList) {
                     Logger.getAnonymousLogger().log(Level.INFO, "Close Request from editorPanel");
                     ev.close(id);
@@ -501,7 +496,7 @@ public class FrameMain extends JFrame {
         });
     }
 
-    public void removeEditorTab(ConnectionId id) {
+    public void removeEditorTab(String id) {
 
         PanelEditor get = ensurePanelEditor(id);
         if (get != null) {
@@ -525,7 +520,7 @@ public class FrameMain extends JFrame {
         _panelConnections.setVisible(b);
     }
 
-    public void appendResponseText(ConnectionId id, String text) {
+    public void appendResponseText(String id, String text) {
         ensurePanelEditor(id);
         switch (_responseOutputType) {
             case Editor:

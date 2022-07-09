@@ -5,7 +5,6 @@
  */
 package com.turnimator.fide.model;
 
-import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
@@ -29,10 +28,10 @@ public class TelnetCommunicator implements CommunicatorInterface {
     Socket _socket = new Socket();
 
     String _host = "";
-    int _port = 23;
+    String _port = "23";
     InetSocketAddress _address = null;
     
-    ConnectionId _id;
+    String _id;
     String errorText = "";
     ArrayList<String> _ports;
 
@@ -40,7 +39,9 @@ public class TelnetCommunicator implements CommunicatorInterface {
 
     ArrayList<ProgressEvent> progressEventList = new ArrayList<>();
 
-    public TelnetCommunicator() {
+    public TelnetCommunicator(String host, String port) {
+        _host = host;
+        _port = port;
         this._ports = new ArrayList<>();
         _ports.add("23");
     }
@@ -65,9 +66,9 @@ public class TelnetCommunicator implements CommunicatorInterface {
      *
      * @return True if successful, false otherwise
      */
-    public ConnectionId connect() {
+    public String connect() {
         try {
-            _socket.connect(_address, _port);
+            _socket.connect(_address, Integer.valueOf(_port));
         } catch (IOException ex) {
             errorText = ex.toString();
             Logger.getAnonymousLogger().log(Level.SEVERE, ex.toString());
@@ -117,7 +118,7 @@ public class TelnetCommunicator implements CommunicatorInterface {
         });
         rxThread.start();
         errorText = "";
-        _id = new ConnectionId(ConnectionType.Telnet, _host + _port);
+        
         return _id;
     }
 
@@ -173,8 +174,8 @@ public class TelnetCommunicator implements CommunicatorInterface {
     }
 
     @Override
-    public ConnectionId getId() {
-        return _id;
+    public String getId() {
+        return _id.toString();
     }
 
     @Override
@@ -197,13 +198,13 @@ public class TelnetCommunicator implements CommunicatorInterface {
     @Override
     public void setHost(String host) {
         _host = host;
-        _address = new InetSocketAddress(host, _port);
+        _address = new InetSocketAddress(host, Integer.valueOf(_port));
     }
 
     @Override
     public void setPort(String port) {
-       _port = Integer.parseInt(port);
-       _address = new InetSocketAddress(_host, _port);
+       _port = port;
+       _address = new InetSocketAddress(_host, Integer.valueOf(_port));
     }
 
     

@@ -7,7 +7,6 @@ package com.turnimator.fide.model;
 
 import com.fazecast.jSerialComm.SerialPort;
 import static com.fazecast.jSerialComm.SerialPort.TIMEOUT_READ_BLOCKING;
-import com.turnimator.fide.ConnectionId;
 import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
@@ -41,9 +40,15 @@ public class SerialCommunicator implements CommunicatorInterface {
     private BufferedReader br = null;
     private PrintWriter pw;
     private boolean _stopFlag = false;
-    private ConnectionId _id;
+    private String _id;
     
 
+    public SerialCommunicator(String port){
+        _port = port;
+        _id = "Serial:" + port;
+        
+    }
+    
     public void addReceiveEventHandler(ReceiveEvent evt) {
         recvList.add(evt);
     }
@@ -70,7 +75,7 @@ public class SerialCommunicator implements CommunicatorInterface {
      * @param connectionString should contain bitrate if non-default
      * @return 
      */
-    public ConnectionId connect() {
+    public String connect() {
         commPort = SerialPort.getCommPort(_port);
 
         commPort.openPort();
@@ -103,7 +108,7 @@ public class SerialCommunicator implements CommunicatorInterface {
             }
         }).start();
         errorText = "Connected";
-        _id = new ConnectionId(ConnectionType.Serial, _port);
+        
         return _id;
     }
 
@@ -155,7 +160,7 @@ public class SerialCommunicator implements CommunicatorInterface {
     }
 
     
-    public ConnectionId getId() {
+    public String getId() {
         return _id;
     }
 
