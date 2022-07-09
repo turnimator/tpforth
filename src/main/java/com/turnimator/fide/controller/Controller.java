@@ -234,7 +234,7 @@ public final class Controller {
             @Override
             public void requestWords(String id) {
                 if (_frameMain.getConnectionType() == ConnectionType.None){
-                    JOptionPane.showMessageDialog(_frameMain, "No Communication for this editor");
+                    JOptionPane.showMessageDialog(_frameMain, "Make a connection to a Forth host first!");
                     return;
                 }
                 _frameMain.setOutputType(ResponseOutputType.Words);
