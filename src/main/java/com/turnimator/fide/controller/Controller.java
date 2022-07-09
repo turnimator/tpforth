@@ -233,6 +233,10 @@ public final class Controller {
         _frameMain.addWordsRequestHandler(new WordsRequestEvent() {
             @Override
             public void requestWords(String id) {
+                if (_frameMain.getConnectionType() == ConnectionType.None){
+                    JOptionPane.showMessageDialog(_frameMain, "No Communication for this editor");
+                    return;
+                }
                 _frameMain.setOutputType(ResponseOutputType.Words);
                 _dispatcher.send(id, "words");
             }

@@ -44,6 +44,7 @@ public class TelnetCommunicator implements CommunicatorInterface {
         _port = port;
         this._ports = new ArrayList<>();
         _ports.add("23");
+        _id = "Telnet:" + host + ":" + port;
     }
 
     public void addProgressEventHandler(ProgressEvent ev) {
@@ -175,7 +176,7 @@ public class TelnetCommunicator implements CommunicatorInterface {
 
     @Override
     public String getId() {
-        return _id.toString();
+        return _id;
     }
 
     @Override

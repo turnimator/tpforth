@@ -571,4 +571,8 @@ public class FrameMain extends JFrame {
     public void setHelp(String word, String helpText) {
         _panelWords.setHelp(word, helpText);
     }
+
+    public ConnectionType getConnectionType() {
+        return _currentEditorPanel.getConnectionType();
+    }
 }
