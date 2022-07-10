@@ -171,7 +171,7 @@ public final class Controller {
     private void addConnectionEventHandlers() {
         _frameMain.addRescanHandler(new RescanEvent() {
             @Override
-            public void rescan() {
+            public void rescan(String host) {
                 scanPorts();
             }
         });

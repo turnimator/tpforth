@@ -163,11 +163,12 @@ public class FrameMain extends JFrame {
                 }
             }
         });
+        
         _panelConnections.addRescanHandler(new RescanEvent() {
             @Override
-            public void rescan() {
+            public void rescan(String host) {
                 for (RescanEvent ev : _rescanHandlerList) {
-                    ev.rescan();
+                    ev.rescan(host);
                 }
             }
         });

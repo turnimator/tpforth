@@ -79,7 +79,7 @@ public class PanelSerialConnection extends Panel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for (RescanEvent ev:rescanHandlerList){
-                    ev.rescan();
+                    ev.rescan("");
                 }
             }
         });

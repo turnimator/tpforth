@@ -181,6 +181,7 @@ public class TelnetCommunicator implements CommunicatorInterface {
 
     @Override
     public List<String> getPorts() {
+        _ports.clear();
         for (Integer i = 23; i < 32767; i++) {
             Socket s = new Socket();
             try {

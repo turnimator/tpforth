@@ -14,6 +14,31 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
         <h1>General</h1>
         These words ought to be compatible with any standard Forth.
 
+<h2>DUP</H2>
+Duplicate the TOS
+<h3>Description</h3>
+<h3>Examples</h3>
+2 dup \ leaves (2 2) on the stack
+
+<h2>SWAP</H2>
+Swaps the two top-most items on the stack
+<h3>Description</h3>
+<h3>Examples</h3>
+1 2 swap \ leaves (2 1) on the stack
+
+<h2>OVER</H2>
+Copies the second entry to the TOS
+<h3>Description</h3>
+<h3>Examples</h3>
+1 2 over \ leaves ( 1 2 1 ) on the stack
+
+<h2>ROT</H2>
+Copies the third entry to the TOS
+<h3>Description</h3>
+<h3>Examples</h3>
+1 2 3 rot \ leaves ( 2 3 1 ) on the stack
+
+
         <h2>.</h2>
         . ( n -- ) Print the number on the stack
         <h3>Description</h3>

@@ -6,15 +6,19 @@ package com.turnimator.fide.view;
 
 import com.turnimator.fide.events.ConnectionCloseEvent;
 import com.turnimator.fide.enums.ConnectionType;
+import com.turnimator.fide.events.RescanEvent;
 import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.text.MaskFormatter;
@@ -26,18 +30,19 @@ import javax.swing.text.MaskFormatter;
 public class PanelTelnetConnection extends Panel {
     private final ArrayList<TelnetConnectionRequestEvent> connectionHandlerList = new ArrayList<>();
     private final ArrayList<ConnectionCloseEvent> disconnectHandlerList = new ArrayList<>();
+    private final ArrayList<RescanEvent> _rescanHandlerList = new ArrayList<>();
     JPanel buttonPanel = new JPanel();
     JPanel textPanel = new JPanel();
     private ConnectionType _connectionType = ConnectionType.Telnet;
-    JTextField urlTextField;
+    JTextField _urlTextField;
     MaskFormatter mask;
     
     JTextField portTextField ;
-   
+    JComboBox<String> _portListBox;
   
-    private JButton buttonConnect;
-    private JButton buttonDisconnect;
-
+    private JButton _connectButton;
+    private JButton _disconnectButton;
+    private JButton _rescanButton;
     
     public PanelTelnetConnection(){
         initComponents();
@@ -45,31 +50,35 @@ public class PanelTelnetConnection extends Panel {
     
     private void initComponents(){
         
-        urlTextField = new JTextField();
-        urlTextField.setText("192.168.4.1");
+        _urlTextField = new JTextField();
+        _urlTextField.setText("192.168.4.1");
         
         portTextField = new JTextField();
-        portTextField.setText("23");
+        //portTextField.setText("23");
+        
+        _portListBox = new JComboBox<>();
         
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.X_AXIS));
-        textPanel.add(urlTextField);
+        textPanel.add(_urlTextField);
         textPanel.add(portTextField);
+        textPanel.add(_portListBox);
+        
         
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-        buttonConnect = new JButton("Connect");
-        buttonConnect.addActionListener(new ActionListener() {
+        _connectButton = new JButton("Connect");
+        _connectButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for(TelnetConnectionRequestEvent ev:connectionHandlerList){
-                    String text = urlTextField.getText();
+                    String text = _urlTextField.getText();
                     Logger.getAnonymousLogger().log(Level.INFO, "urlTextField:"+text);
                     int port = Integer.parseInt(portTextField.getText());
                     ev.connect(text, portTextField.getSelectedText());
                 }
             }
         });
-        buttonDisconnect = new JButton("Disconnect");
-        buttonDisconnect.addActionListener(new ActionListener() {
+        _disconnectButton = new JButton("Disconnect");
+        _disconnectButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 for(ConnectionCloseEvent ev:disconnectHandlerList){
@@ -78,8 +87,16 @@ public class PanelTelnetConnection extends Panel {
                 }
             }
         });
-        buttonPanel.add(buttonConnect);
-        buttonPanel.add(buttonDisconnect);
+        _rescanButton = new JButton(new AbstractAction("Scan") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for(RescanEvent ev:_rescanHandlerList){
+                    ev.rescan(_urlTextField.getText());
+                }
+            }
+        });
+        buttonPanel.add(_connectButton);
+        buttonPanel.add(_disconnectButton);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(textPanel);
         add(buttonPanel);
@@ -88,6 +105,16 @@ public class PanelTelnetConnection extends Panel {
     
     public void addConnectionEventHandler(TelnetConnectionRequestEvent ev){
         connectionHandlerList.add(ev);
+    }
+    
+    public void addRescanEventHandler(RescanEvent ev){
+        _rescanHandlerList.add(ev);
+    }
+    
+    public void setPortList(List<String> ports){
+        for(String s: ports){
+            _portListBox.addItem(s);
+        }
     }
     
 }

@@ -9,5 +9,5 @@ package com.turnimator.fide.events;
  * @author atle
  */
 public abstract class RescanEvent {
-    public abstract void rescan();
+    public abstract void rescan(String host);
 }

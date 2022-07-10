@@ -23,8 +23,7 @@ public class PanelConnections extends JPanel {
     private final ArrayList<DisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
     private ArrayList<RescanEvent> rescanHandlerList = new ArrayList<>();
     
-      private final ArrayList<TelnetConnectionRequestEvent> telnetConnectionHandlerList = new ArrayList<>();
-    
+    private final ArrayList<TelnetConnectionRequestEvent> telnetConnectionHandlerList = new ArrayList<>();
     
     private JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
     private PanelSerialConnection panelSerialConnection;
@@ -34,9 +33,9 @@ public class PanelConnections extends JPanel {
         panelSerialConnection = new PanelSerialConnection();
         panelSerialConnection.addRescanEventHandler(new RescanEvent() {
             @Override
-            public void rescan() {
+            public void rescan(String host) {
                 for(RescanEvent ev:rescanHandlerList){
-                    ev.rescan();
+                    ev.rescan(host);
                 }
             }
         });
@@ -48,6 +47,14 @@ public class PanelConnections extends JPanel {
             public void connect(String host, String port) {
                 for(TelnetConnectionRequestEvent ev:telnetConnectionHandlerList){
                     ev.connect(host, port);
+                }
+            }
+       });
+       panelTelnetConnection.addRescanEventHandler(new RescanEvent() {
+            @Override
+            public void rescan(String host) {
+                for (RescanEvent ev:rescanHandlerList){
+                    ev.rescan(host);
                 }
             }
        });
