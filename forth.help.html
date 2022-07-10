@@ -173,7 +173,9 @@ That feels like making a request to Forth.
         <h3>Description</h3>
         Set pin pin# to value
         <h3>Examples</h3>
-        1 2 pin
+        0 2 pin \ turn off the blue LED 
+        1000 ms \ leave it off for 1 second
+        1 2 pin \ turn the blue LED on again
 
 
         <h2>adc</h2>
@@ -192,12 +194,15 @@ That feels like making a request to Forth.
         digitalWrite ( pin value -- )   Set GPIO pin state
         <h3>Description</h3>
         <h3>Examples</h3>
+  2 0 digitalWrite \ turn off the blue LED 
+  1000 ms \ leave it off for 1 second
+  2 1 digitalWrite \ turn the blue LED on again
 
         <h2>pinmode</h2>
         pinMode ( pin mode -- )   Set GPIO pin mode
         <h3>Description</h3>
         <h3>Examples</h3>
-        
+        2 output pinmode \ set pin 2 to OUTPUT
 
         <h2>analogRead</h2>
         analogRead ( pin -- n )   Analog read from 0-4095
@@ -265,7 +270,7 @@ That feels like making a request to Forth.
         SEE ( "name" -- ) Attempt to decompile a word
         <h3>Description</h3>
         <h3>Examples</h3>
-
+see . \  : .  base @ 10 XOR 0BRANCH u. EXIT str type space ; 
 
         <h2>ECHO</h2>
         VARIABLE ECHO -- Determines if commands are echoed
