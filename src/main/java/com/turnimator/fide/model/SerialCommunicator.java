@@ -26,9 +26,10 @@ import java.util.logging.Logger;
  * @author atle
  */
 public class SerialCommunicator implements CommunicatorInterface {
+
     private String _host = "";
     private String _port = "";
-    
+
     private final ArrayList<ProgressEvent> progressListeners = new ArrayList<>();
 
     private String errorText = "";
@@ -41,14 +42,13 @@ public class SerialCommunicator implements CommunicatorInterface {
     private PrintWriter pw;
     private boolean _stopFlag = false;
     private String _id;
-    
 
-    public SerialCommunicator(String port){
+    public SerialCommunicator(String port) {
         _port = port;
         _id = "Serial:" + port;
-        
+
     }
-    
+
     public void addReceiveEventHandler(ReceiveEvent evt) {
         recvList.add(evt);
     }
@@ -61,7 +61,7 @@ public class SerialCommunicator implements CommunicatorInterface {
         _bitrate = bitrate;
     }
 
-    public ArrayList<String> getPorts() {
+    public ArrayList<String> getPorts(String host) {
         ports.clear();
         List<SerialPort> commPorts = Arrays.asList(SerialPort.getCommPorts());
         for (SerialPort p : commPorts) {
@@ -71,11 +71,12 @@ public class SerialCommunicator implements CommunicatorInterface {
     }
 
     /**
-     * 
+     *
      * @param connectionString should contain bitrate if non-default
-     * @return 
+     * @return
      */
-    public String connect() {
+    public String connect(String port) {
+        _port = port;
         commPort = SerialPort.getCommPort(_port);
 
         commPort.openPort();
@@ -108,7 +109,7 @@ public class SerialCommunicator implements CommunicatorInterface {
             }
         }).start();
         errorText = "Connected";
-        
+
         return _id;
     }
 
@@ -117,9 +118,8 @@ public class SerialCommunicator implements CommunicatorInterface {
         return true;
     }
 
-    
     public boolean send(String s) {
-       // Logger.getAnonymousLogger().log(Level.INFO, "Serial " + _port + " Sending " + s);
+        // Logger.getAnonymousLogger().log(Level.INFO, "Serial " + _port + " Sending " + s);
         if (commPort == null) {
             errorText = "Must connect to port first!";
             Logger.getAnonymousLogger().log(Level.SEVERE, errorText);
@@ -149,17 +149,14 @@ public class SerialCommunicator implements CommunicatorInterface {
         return true;
     }
 
-    
     public boolean isOpen() {
         return commPort.isOpen();
     }
 
-    
     public String getErrorText() {
         return errorText;
     }
 
-    
     public String getId() {
         return _id;
     }
@@ -174,5 +171,4 @@ public class SerialCommunicator implements CommunicatorInterface {
         _port = port;
     }
 
-   
 }

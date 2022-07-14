@@ -11,6 +11,8 @@ import com.turnimator.fide.events.TelnetConnectionRequestEvent;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -22,6 +24,7 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.text.MaskFormatter;
+import sun.jvm.hotspot.gc.shared.GCCause;
 
 /**
  *
@@ -57,7 +60,14 @@ public class PanelTelnetConnection extends Panel {
         //portTextField.setText("23");
         
         _portListBox = new JComboBox<>();
-        
+        _portListBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange()==ItemEvent.SELECTED){
+                    portTextField.setText((String) e.getItem());
+                }
+            }
+        });
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.X_AXIS));
         textPanel.add(_urlTextField);
         textPanel.add(portTextField);
@@ -73,7 +83,7 @@ public class PanelTelnetConnection extends Panel {
                     String text = _urlTextField.getText();
                     Logger.getAnonymousLogger().log(Level.INFO, "urlTextField:"+text);
                     int port = Integer.parseInt(portTextField.getText());
-                    ev.connect(text, portTextField.getSelectedText());
+                    ev.connect(text, portTextField.getText());
                 }
             }
         });
@@ -97,6 +107,7 @@ public class PanelTelnetConnection extends Panel {
         });
         buttonPanel.add(_connectButton);
         buttonPanel.add(_disconnectButton);
+        buttonPanel.add(_rescanButton);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(textPanel);
         add(buttonPanel);
@@ -115,6 +126,14 @@ public class PanelTelnetConnection extends Panel {
         for(String s: ports){
             _portListBox.addItem(s);
         }
+    }
+
+    void addPort(String host, String s) {
+        _portListBox.addItem(s);
+    }
+
+    void clearPortList() {
+        _portListBox.removeAllItems();
     }
     
 }

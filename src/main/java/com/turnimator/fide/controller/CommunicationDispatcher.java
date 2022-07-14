@@ -56,8 +56,12 @@ public class CommunicationDispatcher {
         });
     }
 
-    Iterable<String> getPorts() {
-        return _communicator.getPorts();
+    Iterable<String> getPorts(String host) {
+        if (host.equals("")){
+        return _communicator.getPorts(host);
+        } else {
+            return new TelnetCommunicator(host, "").getPorts(host);
+        }
     }
 
     private CommunicatorInterface ensureCommunicator(String id) {
@@ -74,8 +78,9 @@ public class CommunicationDispatcher {
         return _communicator;
     }
 
-    public String connect() {
-        return _communicator.connect();
+    public String connect(String host, String port) {
+        _communicator.setHost(host);
+        return _communicator.connect(port);
     }
 
     public boolean disconnect(String id) {

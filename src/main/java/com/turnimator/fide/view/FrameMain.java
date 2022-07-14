@@ -129,6 +129,9 @@ public class FrameMain extends JFrame {
     private PanelWords _panelWords;
 
     private PanelEditor ensurePanelEditor(String id) {
+        if (id == null){
+            throw new NullPointerException("id can't be null!");
+        }
         if (!id.equals(_currentEditorPanel.getConnectionId())) {
             _currentEditorPanel = _editorPanelMap.get(id);
         }
@@ -176,6 +179,7 @@ public class FrameMain extends JFrame {
         _panelConnections.addTelnetConnectionHandler(new TelnetConnectionRequestEvent() {
             @Override
             public void connect(String host, String port) {
+                Logger.getAnonymousLogger().log(Level.INFO, "Connect to " + host + ":" + port);
                 for (TelnetConnectionRequestEvent ev : _telnetConnectRequestHandlerList) {
                     ev.connect(host, port);
                 }
@@ -427,8 +431,8 @@ public class FrameMain extends JFrame {
         _connectionDisplayHandlerList.add(ev);
     }
 
-    public void addSerialPortToList(String s) {
-        _panelConnections.addSerialPortToList(s);
+    public void addPort(String host, String s) {
+        _panelConnections.addPort(host, s);
     }
 
     public void addSerialConnectionRequestHandler(SerialConnectionRequestEvent ev) {
@@ -525,6 +529,7 @@ public class FrameMain extends JFrame {
         ensurePanelEditor(id);
         switch (_responseOutputType) {
             case Editor:
+                ensurePanelEditor(id);
                 _currentEditorPanel.appendOutputText(text);
                 break;
             case Words:
@@ -539,8 +544,8 @@ public class FrameMain extends JFrame {
         }
     }
 
-    public void clearSerialPortList() {
-        _panelConnections.clearSerialPortsList();
+    public void clearPorts(String host) {
+        _panelConnections.clearPorts(host);
     }
 
     public void appendProgramText(String string) {

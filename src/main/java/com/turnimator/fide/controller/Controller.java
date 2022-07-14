@@ -40,11 +40,12 @@ import javax.swing.JOptionPane;
  * @author atle
  */
 public final class Controller {
+
     String _lastDirectory = ".";
     FrameMain _frameMain;
     CommunicationDispatcher _dispatcher = new CommunicationDispatcher();
     HelpServer _helpServer;
-    
+
     public Controller() {
         _lastDirectory = System.getProperty("LastDir");
 
@@ -58,15 +59,15 @@ public final class Controller {
                 _frameMain.appendResponseText(id, text);
             }
         });
-        scanPorts();
+        scanPorts("");
         _frameMain.addEditorTab("Scratchpad", ConnectionType.None);
         _helpServer = new HelpServer();
     }
 
-    void scanPorts() {
-        _frameMain.clearSerialPortList();
-        for (String s : _dispatcher.getPorts()) {
-            _frameMain.addSerialPortToList(s);
+    void scanPorts(String host) {
+        _frameMain.clearPorts(host);
+        for (String s : _dispatcher.getPorts(host)) {
+            _frameMain.addPort(host, s);
         }
     }
 
@@ -172,7 +173,8 @@ public final class Controller {
         _frameMain.addRescanHandler(new RescanEvent() {
             @Override
             public void rescan(String host) {
-                scanPorts();
+                Logger.getAnonymousLogger().log(Level.INFO, "Rescan:" + host);
+                scanPorts(host);
             }
         });
         _frameMain.addTelnetConnectionRequestHandler(new TelnetConnectionRequestEvent() {
@@ -182,7 +184,7 @@ public final class Controller {
                  * TELNET COMMUNICATOR AND EDITOR ADDED TO THE TABBED PANE
                  */
                 _dispatcher.createCommunicator(ConnectionType.Telnet, host, port);
-                String connectionId = _dispatcher.connect();
+                String connectionId = _dispatcher.connect(host, port);
                 if (connectionId == null) {
                     JOptionPane.showMessageDialog(_frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
                     return;
@@ -198,7 +200,7 @@ public final class Controller {
             @Override
             public void connect(String port, int bitRate) {
                 _dispatcher.createCommunicator(ConnectionType.Serial, "", port);
-                String connectionId = _dispatcher.connect();
+                String connectionId = _dispatcher.connect("", port);
                 if (connectionId == null) {
                     JOptionPane.showMessageDialog(_frameMain, "Connection failed", "Error", JOptionPane.OK_OPTION);
                     return;
@@ -211,7 +213,7 @@ public final class Controller {
         _frameMain.addConnectionCloseEventHandler(new ConnectionCloseEvent() {
             @Override
             public void close(String id) {
-                if (_frameMain.getConnectionType() != ConnectionType.None){
+                if (_frameMain.getConnectionType() != ConnectionType.None) {
                     _dispatcher.disconnect(id);
                 }
                 _frameMain.removeEditorTab(id);
@@ -235,7 +237,7 @@ public final class Controller {
         _frameMain.addWordsRequestHandler(new WordsRequestEvent() {
             @Override
             public void requestWords(String id) {
-                if (_frameMain.getConnectionType() == ConnectionType.None){
+                if (_frameMain.getConnectionType() == ConnectionType.None) {
                     JOptionPane.showMessageDialog(_frameMain, "Make a connection to a Forth host first!");
                     return;
                 }

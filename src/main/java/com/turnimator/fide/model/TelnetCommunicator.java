@@ -5,7 +5,6 @@
  */
 package com.turnimator.fide.model;
 
-import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
 import java.io.BufferedReader;
@@ -51,7 +50,7 @@ public class TelnetCommunicator implements CommunicatorInterface {
         progressEventList.add(ev);
     }
 
-    private void emitProgressEvent(int max, int min, int i) {
+    private void bubbleProgressEvent(int max, int min, int i) {
         for (ProgressEvent ev : progressEventList) {
             ev.progress(max, min, i);
         }
@@ -67,7 +66,12 @@ public class TelnetCommunicator implements CommunicatorInterface {
      *
      * @return True if successful, false otherwise
      */
-    public String connect() {
+    @Override
+    public String connect(String port) {
+        _port = port;
+        if (_address == null){
+            throw new NullPointerException("Address is null. set with setHost()");
+        }
         try {
             _socket.connect(_address, Integer.valueOf(_port));
         } catch (IOException ex) {
@@ -103,11 +107,6 @@ public class TelnetCommunicator implements CommunicatorInterface {
                     for (ReceiveEvent evt : rcvEventList) {
                         evt.receive(_id, s);
                     }
-                    try {
-                        _socket.close();
-                    } catch (IOException ex) {
-                        Logger.getLogger(TelnetCommunicator.class.getName()).log(Level.SEVERE, null, ex);
-                    }
                 }
                 try {
                     _socket.close();
@@ -136,7 +135,7 @@ public class TelnetCommunicator implements CommunicatorInterface {
      */
     @Override
     public boolean send(final String s) {
-        Logger.getAnonymousLogger().log(Level.INFO, "Telnet " + _host + " Sending" + s);
+        Logger.getAnonymousLogger().log(Level.INFO, "Telnet " + _host + " Sending: " + s);
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -180,19 +179,23 @@ public class TelnetCommunicator implements CommunicatorInterface {
     }
 
     @Override
-    public List<String> getPorts() {
+    public List<String> getPorts(String host) {
         _ports.clear();
+        InetSocketAddress addr;
         for (Integer i = 23; i < 32767; i++) {
             Socket s = new Socket();
             try {
-                s.connect(_address, 20);
+                addr = new InetSocketAddress(host, i);
+                s.connect(addr, 20);
                 if (s.isConnected()){
                     _ports.add(i.toString());
                     s.close();
                 }
             } catch (IOException ex) {
-                Logger.getLogger(TelnetCommunicator.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                //Logger.getLogger(TelnetCommunicator.class.getName()).log(Level.SEVERE, null, ex);
+            } 
+            bubbleProgressEvent(23, i, 32767);
+            
         }
         return _ports;
     }

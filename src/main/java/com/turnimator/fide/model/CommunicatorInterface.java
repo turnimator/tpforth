@@ -24,12 +24,12 @@ public interface CommunicatorInterface {
      * @return
      */
     
-    String connect();
+    String connect(String port);
     String getId();
     boolean disconnect();
     boolean send(String s);
     void addReceiveEventHandler(ReceiveEvent evt);
     boolean isOpen();
     String getErrorText();
-    List<String> getPorts();
+    List<String> getPorts(String host);
 }
