@@ -1,8 +1,3 @@
-<!DOCTYPE html>
-<!--
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this template
--->
 <html>
     <head>
         <title>ESP32Forth</title>
@@ -10,1736 +5,1777 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/html.html to edit this temp
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <div>Forth help</div>
-        <h1>General</h1>
-        These words ought to be compatible with any standard Forth.
+<h2></h2>
+ 
 
-<h2>DUP</H2>
-Duplicate the TOS
-<h3>Description</h3>
-<h3>Examples</h3>
-2 dup \ leaves (2 2) on the stack
+<h2>Block File system</h2>
+ 
 
-<h2>SWAP</H2>
-Swaps the two top-most items on the stack
-<h3>Description</h3>
-<h3>Examples</h3>
-1 2 swap \ leaves (2 1) on the stack
+<h2>block</h2>
+( n -- a ) Get a 1024 character block
 
-<h2>OVER</H2>
-Copies the second entry to the TOS
-<h3>Description</h3>
-<h3>Examples</h3>
-1 2 over \ leaves ( 1 2 1 ) on the stack
+<h2>block-fid</h2>
+( – n ) "value
 
-<h2>ROT</H2>
-Copies the third entry to the TOS
-<h3>Description</h3>
-<h3>Examples</h3>
-1 2 3 rot \ leaves ( 2 3 1 ) on the stack
+<h2>block-id</h2>
+( -- n ) "value
 
+<h2>buffer</h2>
+( n -- a ) Get a 1024 byte block without regard to old contents
 
-        <h2>.</h2>
-        . ( n -- ) Print the number on the stack
-        <h3>Description</h3>
-        . will print the number on the stack according to the set number base.
-        <h3>Examples</h3>
-        10 . \ print the number 10
-
-        <h2>.s</h2>
-        Print the contents of the stack
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2 id='#create'>create</h2>
-        <p>CREATE new-word1</p>
-        <h3>Description</h3>
-        <p>CREATE takes the next (space-delimited) word from the input stream, 
-        and creates a new dictionary item for it. </p>
-
-        <h3>Examples</h3>
-
-       CREATE new-word1
-
-        CREATE new-word2 1 cells allot  \ reserve 1 cell - initial value undefined
-        CREATE new-word3 4 ,            \ reserve 1 cell and initialize it (to 4) 
-
-        The variable can be examined and modified using @ (fetch) and ! (store) like this:
-
-        new-word2 @ .      \ get address, fetch from it and display
-        1234 new-word2 !   \ new value, get address, store to it 
-
-        \ Creating an array a of 5 cells, storing the number 17 in cell 1, then retrieving it
-
-        create a 5 cells allot  \ a) create the 5 cell array
-        17 a 1 cells + !        \ b) Store the number 17 in cell 1
-        a 1 cells + @ .         \ c) read and display the number stored in cell 1. (prints 17)
-
-        Array access could be simplified by defining getters and setters for the array.
-
-        : array create cells allot ; \ Factor a) above into a word
-        : array-put cells + ! ;      \ Factor b) above into a word
-        : array-get cells + @ ;      \ Factor c) above into a word
-
-        7 array b           \ Create a 7 cell array named b. compare to a) above. Simple, non?
-        5 b 3 array-put     \ put the number 5 in the 3rd cell
-        b 3 array-get .     \ print the contents of array b's 3rd cell
-
-
-        <h3>See also</h3>
-        <a href='#does&gt;'>Does&gt;</a> 
-
-        Portions taken from the GFORTH manual
-
-        <h2 id='#does&gt;'>does&gt;</h2>
-
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h3>See also</h3>
-        <a href='#create'>Create</a>
-
-        <h2>0&lt;</h2>
-        0&lt; (n -- f) true if n less than 0, false otherwise
-        <h3>Description</h3>
-        Puts true on the stack if n is less than 0, puts false on the stack otherwise
-        <h3>Examples</h3>
-        Print "Yes" is 2 is less than 0, "No" otherwise<br><br>
-
-        2 0< [if] ." yes" [else] ." No" [then] <br>
-        No ok<br><br>
-
-        Print "Yes" if -12 is less than 0, "No" otherwise<br><br>
-
-        -12 0< [if] ." yes" [else] ." No" [then]<br>
-        yes ok<br> 
-
-        <h1>Strings</h1>
-        Strings are stored as ( address length )
-        <pre>
-           Return the nth character of a string
-
-            : strnchr ( addr n i )
-                swap	\ addr i n
-                drop	\ addr i
-                +
-                @	\  c
-                255 and \ mask off hight byte
-            ;
-
-
-
-: strloop 	\ addr n xt
-            swap 	\ addr xt n
-            0 DO 	\ addr xt
-                2dup 	\ addr xt addr xt
-                swap	\ addr xt xt addr
-                i + @ 	\ addr xt xt value
-                swap	\ addr xt value xt
-                execute 	\ addr xt flag
-                IF exit THEN
-            LOOP
-            2drop       \ remember to clean up the stack
-        ;
-        
-\ IMO your source would clearer if you add a stack notation
-\ The following version is also shorter.
-: 2strloop ( adress-string lenght - adress-string )
-2dup bounds do i @ emit cr loop drop ;
-\ if you do not need the adress-string then it could be shorter:
-: 3strloop ( adress-string lenght - )
-bounds do i @ emit cr loop ;
-Note: I often start with a stack notation before coding.
-That feels like making a request to Forth.
-        </pre>
-        <h2>s&quot;</h2>
-        Start a string
-        <h3>Description</h3>
-        s&quot; takes one space, then a string, then a terminating &quot;
-        <h3>Examples</h3>
-        
-        <Pre>
-        Loop through all the characters of a string, printing a newline after each one.
-
-        : strloop 0 DO dup i + @ emit cr LOOP ;
-        s" atle" strloop
-
-        Factored into a word that takes a string and some arbitrary code and 
-        distributes the code over the characters in the string
-
-        : strloop 	\ addr n xt
-            swap 	\ addr xt n
-            0 DO 	\ addr xt
-                2dup 	\ addr xt addr xt
-                swap	\ addr xt xt addr
-                i + @ 	\ addr xt xt value
-                swap	\ addr xt value xt
-                execute \
-            LOOP
-            2drop       \ remember to clean up the stack
-        ;
-        
-        s" atle" ' emit strloop
-        atle ok
-
-        : lowcase 32 + emit ; \ simple lowercase
-
-        s" ATLE" ' lowcase strloop \ print lowercase string
-        atle ok
-
-        </Pre>        
-        
-        
-        <h1>GPIO</h1>
-        Short GPIO Names : pin adc
-
-        <h2>pin</h2>
-        pin ( value pin# -- )   Set GPIO pin value
-        <h3>Description</h3>
-        Set pin pin# to value
-        <h3>Examples</h3>
-        0 2 pin \ turn off the blue LED 
-        1000 ms \ leave it off for 1 second
-        1 2 pin \ turn the blue LED on again
-
-
-        <h2>adc</h2>
-        adc ( pin# -- n )   Analog read pin, result 0-1023
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>digitalRead</h2>
-        digitalRead ( pin -- value)   Read GPIO pin state
-        <h3>Description</h3>
-        <h3>Examples</h3>
-        \ read pin# 5 and leave the result on the stack
-        5 digitalRead
-
-        <h2>digitalWrite</h2>
-        digitalWrite ( pin value -- )   Set GPIO pin state
-        <h3>Description</h3>
-        <h3>Examples</h3>
-  2 0 digitalWrite \ turn off the blue LED 
-  1000 ms \ leave it off for 1 second
-  2 1 digitalWrite \ turn the blue LED on again
-
-        <h2>pinmode</h2>
-        pinMode ( pin mode -- )   Set GPIO pin mode
-        <h3>Description</h3>
-        <h3>Examples</h3>
-        2 output pinmode \ set pin 2 to OUTPUT
-
-        <h2>analogRead</h2>
-        analogRead ( pin -- n )   Analog read from 0-4095
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>pulseIn</h2>
-        pulseIn ( pin value usec -- usec/0 )  Wait for a pulse
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>dacWrite</h2>
-        dacWrite ( pin 0-255 -- )  Write to DAC (pin 25, 26)
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h1>Null Terminated Strings</h1>
-        As null terminated strings are used throughout C interfaces, 
-        their use is supported in Forth by way of several non-standard words 
-        with the convention of using Z/z to refer to such strings in names 
-        and stack comment
-
-        <h2>Z"</h2>
-        Z" ( "string" -- z ) Creates a null terminated string on the heap
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>Z>S</h2>
-        Z>S ( z -- a n ) Convert a null terminated string to a counted string
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>S>Z</h2>
-        S>Z ( a n -- z ) Convert a counted string string to null terminated 
-        (copies string to heap)
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h1>Raw Strings</h1>
-
-        Raw strings are provided better support using a string for the duration 
-        of the current command, without consuming heap memory.
-
-        <h2>R"</h2>
-        R" ( "string" -- a n ) Creates a temporary counted string
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h2>R|</h2>
-        R| ( string| -- a n ) Creates a temporary counted string ending with |
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h1>Utilities</h1>
-
-        <h2>DUMP</h2>
-        DUMP ( a n -- ) Dump a memory region
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h2>SEE</h2>
-        SEE ( "name" -- ) Attempt to decompile a word
-        <h3>Description</h3>
-        <h3>Examples</h3>
-see . \  : .  base @ 10 XOR 0BRANCH u. EXIT str type space ; 
-
-        <h2>ECHO</h2>
-        VARIABLE ECHO -- Determines if commands are echoed
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h2></h2>
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h1>Vocabularies</h1>
-
-        ESP32forth uses a hybrid of Forth-79 and Forth-83 style vocabularies. By default vocabularies chain to the vocabulary in which they were defined, as in Forth-79. However, like Forth-83, ALSO can be used to add vocabularies to a vocabulary stack of which CONTEXT @ is the first item. The word ONLY clears the vocabulary stack, but as there is no separate ONLY vocabulary, it also sets CONTEXT to the FORTH vocabulary. The word SEALED modifies the most recently defined vocabulary such that it does not chain. Note, this must be done before words are added to it.
-
-
-        <h2>VOCABULARY</h2>
-        VOCABULARY ( "name" ) Create a vocabulary with the current vocabulary as parent
-        <h3>Description</h3>
-        <h3>Examples</h3> 
-
-        <h2>FORTH</h2>
-        FORTH ( -- ) Make the FORTH vocabulary the context vocabulary
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h2>DEFINITIONS</h2>
-        DEFINITIONS ( -- ) Make the context vocabulary the current vocabulary
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h2>VLIST</h2>
-        VLIST ( -- ) List the words in the context vocabulary (not chains)
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>WORDS</h2>
-        WORDS ( -- ) List the words in the context vocabulary (including chains)
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>TRANSFER</h2>
-        TRANSFER ( "name" ) Move a word from its current dictionary to the current vocabulary
-        <h3>Description</h3>
-        Useful for "hiding" built-in words
-        <h3>Examples</h3>
-
-        <h2>}TRANSFER</h2>
-        TRANSFER{ ..words.. }TRANSFER ( -- ) Transfer multiple words to the current vocabulary
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>TRANSFER{</h2>
-        TRANSFER{ ..words.. }TRANSFER ( -- ) Transfer multiple words to the current vocabulary
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h2>ALSO</h2>
-        ALSO ( -- ) Duplicate the vocabulary at the top of the vocabulary stack
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>ONLY</h2>
-        ONLY ( -- ) Reset context stack to one item, the FORTH dictionary
-        Non-standard, as there's no distinct ONLY vocabulary
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>ORDER</h2>
-        ORDER ( -- ) Print the vocabulary search order
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>SEALED</h2>
-        SEALED ( -- ) Alter the last vocabulary defined so it doesn't chain
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h1>Interpret Time Conditions</h1>
-
-        [I]F, [ELSE], and [THEN] can be used to selectively compile. 
-        Used in tandem with DEFINED? they can be used to handle the absence of modules gracefully. 
-        Nesting is supported.
-
-        <h2>DEFINED?</h2>
-        DEFINED? ( "name" -- xt|0 ) Check if a word exists (works at compile time too).
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>[IF]</h2>
-        [IF] ( f -- ) Conditionally interpret the text the follows.
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>[ELSE]</h2>       
-        [ELSE] ( -- ) Interpret time ELSE.
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>[THEN]</h2>       
-        [THEN] ( -- ) Interpret time THEN.
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h1>Blocks</h1>
-
-        <h2>USE</h2>
-        USE ( "name" -- ) Use "name" as the blockfile, e.g. USE /spiffs/foo
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>OPEN-BLOCKS</h2>       
-        OPEN-BLOCKS ( a n -- ) Open a file as the block file
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>LOAD</h2>
-        LOAD ( n -- ) Evaluate a block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>THRU</h2>       
-        THRU ( a b -- ) Load blocks a thru b
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>LIST</h2>
-        LIST ( n -- ) List a block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>BLOCK</h2>       
-        BLOCK ( n -- a ) Get a 1024 byte block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>BUFFER</h2>       
-        BUFFER ( n -- a ) Get a 1024 byte block without regard to old contents
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2></h2>
-        UPDATE ( -- ) Mark the last block modified
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>FLUSH</h2>       
-        FLUSH ( -- ) Save and empty all buffers
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>EMPTY-BUFFERS</h2>
-        EMPTY-BUFFERS ( -- ) Empty all buffers
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>SAVE-BUFFERS</h2>
-        SAVE-BUFFERS ( -- ) Save all buffers
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>SCR</h2>
-        SCR ( -- a ) Pointer to last listed block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h1>Block Editor</h1>
-
-        These words are available inside the EDITOR vocabulary. Note the block editor places newlines in the 63rd column of each line to make the block file readable in a text editor.
-
-        <h2>WIPE</h2>
-        WIPE ( -- ) Blank out the current block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>L</h2>
-        L ( -- ) List the current block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>D</h2>
-        D ( n -- ) Delete a line in the current block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>E</h2>
-        E ( n -- ) Clear a line in the current block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>R</h2>
-        R ( n "text" -- ) Replace a line in the current block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>A</h2>
-        A ( n "text" -- ) Add (insert) a line in the current block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>P</h2>
-        P ( -- ) Move to the previous block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>N</h2>
-        N ( -- ) Move to the next block
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-
-        <h1>Utilities</h1>
-
-        <h2>SEE</h2>
-        SEE ( "name" -- ) Attempt to decompile a word
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>ECHO</h2>
-        ECHO ( -- a ) -- Address of flag that determines if commands are echoed
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h1>ESP32forth Bindings</h1>
-
-        Because Arduino builds a statically linked image for flashing into ESP32 devices, 
-        all C function bindings need to be explicitly added. 
-        This is the current collection. 
-        Typically to reduce confusion, function names have be preserved even through verbose. 
-        In popular cases a shorted higher level name is provided.
-
-        See template.ino.
-
-        <h1>Allocation</h1>Allocation
-
-        These words are inside the internals vocabulary.
-
-        <h2>MALLOC</h2> 
-        MALLOC ( n -- a | 0 )   System malloc
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>SYSFREE</h2> 
-        SYSFREE ( a -- )   System free
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h2>REALLOC</h2> 
-        REALLOC ( a n -- a | 0 )   System realloc
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-        <h1>Serial</h1>
-
-        These words are inside the Serial vocabulary.
-
-        <h2>Serial.begin</h2>
-        Serial.begin ( baud -- )   Start serial port
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h2>Serial.end</h2>
-        Serial.end ( -- )   End serial port
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h2>Serial.available</h2>
-        Serial.available ( -- f )   Is serial data available
-        <h3>Description</h3>
-        <h3>Examples</h3>
-
-
-        <h2>Serial.readBytes</h2>
-        Serial.readBytes ( a n -- n )   Read serial bytes, return number gotten
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>copy</h2>
+( from to -- ) Copy contents of block 'from' to block 'to'
 
-        <h2>Serial.write</h2>
-        Serial.write ( a n -- n )   Write serial bytes
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>default-use</h2>
+ "deferred word
 
-        <h2>Serial.flush</h2>
-        Serial.flush ( -- )   Flush serial buffer
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>empty-buffers</h2>
+( -- ) Empty all buffers
 
-        <h1>Serial Bluetooth</h1>
+<h2>flush</h2>
+( -- ) Save and empty all buffers
 
-        These words are inside the bluetooth vocabulary.
+<h2>list</h2>
+( n -- ) List block n of 1024 characters to the display
 
-        <h2>SerialBT.new</h2>
-        SerialBT.new ( -- bt )   Allocate new BT object
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>load</h2>
+( n -- ) Evaluate block n of 1024 characters as the input stream
 
+<h2>open-blocks</h2>
+( a n -- ) Open a file as the block file
 
-        <h2>SerialBT.delete</h2>
-        SerialBT.delete ( bt -- )   Free BT object
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>save-buffers</h2>
+( -- ) Save all buffers
 
+<h2>scr</h2>
+( -- adr ) Pointer to last listed block
 
-        <h2>SerialBT.begin</h2>
-        SerialBT.begin ( localname ismaster bt -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>thru</h2>
+( a b -- ) Load blocks a thru b
 
+<h2>update</h2>
+( -- ) Mark the last block modified
 
-        <h2>SerialBT.end</h2>
-        SerialBT.end ( bt -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>use</h2>
+"( ""name"" -- )" "Use ""name"" as the blockfile
 
+<h2>Block File Editor</h2>
+ 
 
-        <h2>SerialBT.available</h2>
-        SerialBT.available ( bt -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>a</h2>
+"( n ""text"" -- )" "Add (insert) a line in the current block with the words that follow in the input stream
 
+<h2>d</h2>
+( n -- ) Delete a line in the current block
 
-        <h2>SerialBT.readBytes</h2>
-        SerialBT.readBytes ( a n bt -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>e</h2>
+( n -- ) Clear a line in the current block
 
+<h2>l</h2>
+( – ) List the current 1024 character block
 
-        <h2>SerialBT.write</h2>
-        SerialBT.write ( a n bt -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>n</h2>
+( – ) Move to the next 1024 character block
 
+<h2>p</h2>
+( – ) Move to the previous 1024 character block
 
-        <h2>SerialBT.flush</h2>
-        SerialBT.flush ( bt -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>r</h2>
+"( n ""text"" -- )" "Replace a line in the current block with the words that follow in the input stream
 
+<h2>wipe</h2>
+( -- ) Erase the 1024 character block
 
-        <h2>SerialBT.hasClient</h2>
-        SerialBT.hasClient ( bt -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>editor</h2>
+( -- ) vocabulary name of the block file editor
 
+<h2>Branching</h2>
+ 
 
-        <h2>SerialBT.enableSSP</h2>
-        SerialBT.enableSSP ( bt -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>[ELSE]</h2>
+( – ) Interpret time ELSE
 
+<h2>[IF]</h2>
+( f – ) "Interpret time IF ( conditional interpretation of words that follow
 
-        <h2>SerialBT.setPin</h2>
-        SerialBT.setPin ( z bt -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>[THEN]</h2>
+(–) Interpret time THEN
 
+<h1>forth</h1>
+<h1>forth</h1>
+<h2>DEFINED?</h2>
+"( ""name"" -- xt | 0 )" "If the name that follows in the input stream is found in the dictionary
 
-        <h2>SerialBT.unpairDevice</h2>
-        SerialBT.unpairDevice ( addr bt -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>forth</h1>
+<h1>forth</h1>
+<h2>if</h2>
+( flag – ) "Conditional structure
 
+<h1>forth</h1>
+<h1>forth</h1>
+<h2>Character I/O</h2>
+ 
 
-        <h2>SerialBT.connect</h2>
-        SerialBT.connect ( remotename bt -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>"."""</h2>
+( “string” – ) display the string that follows in the input stream until a terminating “
 
+<h2>accept</h2>
+( b u1 -- b u2 ) accepts u1 characters to b. u2 returned is the actual count of characters received
 
-        <h2>SerialBT.connectAddr</h2>
-        SerialBT.connectAddr ( addr bt -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>char</h2>
+"( ""character"" -- c )" Convert the non-space char that follows in the input stream and place it's value tos e.g. char 0 places 48 on top of the stack
 
+<h2>cr</h2>
+( -- ) "send carriage return
 
-        <h2>SerialBT.disconnect</h2>
-        SerialBT.disconnect ( bt -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>emit</h2>
+( c – ) display the ascii character c
 
+<h2>key</h2>
+( – chr ) deferred word - reads the next character in the input stream - defaults to word serial-key
 
-        <h2>SerialBT.connected</h2>
-        SerialBT.connected ( timeout bt -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>key?</h2>
+( -- cnt ) "deferred word - returns cnt
 
+<h2>ok</h2>
+( -- ) display the string ok
 
-        <h2>SerialBT.isReady</h2>
-        SerialBT.isReady ( checkMaster timeout -- f )
-        Default checkMaster=false, timeout=0
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>page</h2>
+( -- ) Emit 30 CR characters to the display
 
-        <h1>Bluetooth</h1>
+<h2>PARSE</h2>
+"( c ""wordtoparse"" -- addr cnt )" "Parse the next word in the input stream
 
-        These words are inside the bluetooth vocabulary.
+<h2>prompt</h2>
+ send ok and <cr> to the display
 
-        <h2>esp_bt_dev_get_address</h2>
-        esp_bt_dev_get_address ( -- a ) addr of 6 byte mac address
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>space</h2>
+( -- ) Emit a space character to the display
 
+<h2>tib</h2>
+( -- addr ) returns the address of the the terminal input buffer where input text string is held
 
-        <h1>ledc</h1>
+<h2>type</h2>
+( addr n -- ) "deferred word - display an n long character string
 
-        These words are inside the ledc vocabulary.
+<h2>ip.</h2>
+( n --  ) print n in IP address format e.g. 192.168.1.2
 
-        <h2>ledcSetup</h2>
-        ledcSetup ( channel freq resolution -- freq )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>ip#</h2>
+( n1 -- n2 ) print one section of an ip address
 
+<h2>Comment</h2>
+ 
 
-        <h2>ledcAttachPin</h2>
-        ledcAttachPin ( pin channel -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>(</h2>
+"( ""string""-- )" "Start of a 1 line comment
 
+<h2>\</h2>
+ "Start of a 1 line comment
 
-        <h2>ledcDetachPin</h2>
-        ledcDetachPin ( pin -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Comparison</h2>
+ 
 
+<h2><</h2>
+( n1 n2 -- f ) "f=true of n1 less than n2
 
-        <h2>ledcRead</h2>
-        ledcRead ( channel -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2><=</h2>
+( n1 n2 -- f ) "f=true if n1 less than or equal n2
 
+<h2><></h2>
+( n1 n2 -- f ) "f=true if n1 not equal n2
 
-        <h2>ledcReadFreq</h2>
-        ledcReadFreq ( channel -- freq )   Get frequency (x 1,000,000)
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>=</h2>
+( n1 n2 -- f ) "f=true if n1 equals n2
 
+<h2>></h2>
+( n1 n2 -- f ) "f=true if n1 greater than n2
 
-        <h2>ledcWrite</h2>
-        ledcWrite ( channel duty -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>>=</h2>
+( n1 n2 -- f ) "f=true if n1 greater than or equal n2
 
+<h2>0<</h2>
+( n -- f ) "f=true if n less than zero
 
-        <h2>ledcWriteTone</h2>
-        ledcWriteTone ( channel freq )   Write tone frequency (x 1000)
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>0<></h2>
+( n -- f ) "f=true if n not equal zero
 
+<h2>0=</h2>
+( n -- f ) "f=true if n equals zero
 
-        <h2>ledcWriteNote</h2>
-        ledcWriteNote ( channel note octave -- freq )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Debug</h2>
+ 
 
+<h2>.s</h2>
+( – ) display the data stack depth and data stack on one line of the display
 
-        <h1>System</h1>
+<h2>dump</h2>
+( addr n – ) "display memory starting at addr
 
+<h2>dump-file</h2>
+( a n a n -- ) 
 
-        <h2>MS</h2>
-        MS ( n -- ) Pause for some number of milliseconds.
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>order</h2>
+( – ) Print the vocabulary search order
 
+<h2>see</h2>
+"( ""text"" -- )" Attempt to decompile the word which follows in the input stream
 
-        <h2>MS-TICKS</h2>
-        MS-TICKS ( -- n ) Time since start in milliseconds.
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>vlist</h2>
+( -- ) List the words in the context vocabulary (not chains) e.g. vlist WiFi only lists words in the Wifi vocabulary
 
+<h2>words</h2>
+( -- ) List the words in the context vocabulary (including chains)
 
-        <h2>TERMINATE</h2>
-        TERMINATE ( n -- ) Call system exit.
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Dictionary</h2>
+ 
 
+<h2>>body</h2>
+( xt -- addr ) addr is the data-field address corresponding to execution token xt
 
-        <h1>Files</h1>
+<h2>>link</h2>
+( xt -- addr )  addr is the link-field address corresponding to execution token xt
 
-        <h2>R/O</h2>
-        R/O ( -- mode )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>>link&</h2>
+( xt -- addr ) used internally  by >link
 
+<h2>>name</h2>
+( xt -- addr  n | 0 ) "convert execution token xt to a name located at addr with n characters
 
-        <h2>R/W</h2>
-        R/W ( -- mode )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>FIND</h2>
+( addr n -- xt | 0 ) "using the counted string at addr with n characters
 
+<h2>forget</h2>
+"( ""name"" -- )" "find the word that follows in the input stream; if it exists in the current dictionary
 
-        <h2>W/O</h2>
-        W/O ( -- mode )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>here</h2>
+( -- addr ) "returns the address of the first free location above the code dictionary
 
+<h2>only</h2>
+( -- ) "Reset context stack to one item
 
-        <h2>BIN</h2>
-        BIN ( mode -- mode )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>transfer</h2>
+"( ""name"" -- )" "Move a word from its current dictionary to the current vocabulary. Useful for ""hiding"" helper words that aren't useful in normal programming"
 
+<h2>transfer{</h2>
+( -- ) Move all the words that follow in the input stream up until a terminating } to the current vocabulary. All the words must have been defined beforehand
 
-        <h2>CLOSE-FILE</h2>
-        CLOSE-FILE ( fh -- ior )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Exceptions</h2>
+ 
 
+<h2>assert</h2>
+( f -- ) "if flag f=true
 
-        <h2>OPEN-FILE</h2>
-        OPEN-FILE ( a n mode -- fh ior )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>catch</h2>
+( ca -- err# | 0 ) sets up a local error frame on the return stack and executes the word referenced by the execution word ca. It returns a non-zero error code or a zero if no error occurred
 
+<h2>handler</h2>
+( -- addr ) holds the return stack pointer for error handling - zero if no error occurred.
 
-        <h2>CREATE-FILE</h2>
-        CREATE-FILE ( a n mode -- fh ior )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>throw</h2>
+( err# -- err# ) throws the system back to 'catch' so that the error condition can be processed. 'Catch' is backtracked by restoring the return stack from the pointer stored in 'handler' and popping the old handler and SP off the error frame on the return stack.
 
+<h2>Files</h2>
+ 
 
-        <h2>DELETE-FILE</h2>
-        DELETE-FILE ( a n -- ior )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>BIN</h2>
+( fam1 -- fam2 ) "Modify the implementation-defined file access method fam1 to additionally select a ""binary""
 
+<h2>CLOSE-FILE</h2>
+( fh -- ior ) ior= Input Output Result Close the file identified by fileid. ior is the implementation-defined I/O result code.
 
-        <h2>WRITE-FILE</h2>
-        WRITE-FILE ( a n fh -- ior )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>CREATE-FILE</h2>
+( a n mode -- fh ior )  ( c-addr u fam -- fileid ior ) "Create the file named in the character string specified by c-addr and u
 
+<h2>DELETE-FILE</h2>
+( a n -- ior ) ( c-addr u -- ior ) Delete the file named in the character string specified by c-addr u. ior is the implementation-defined I/O result code.
 
-        <h2>READ-FILE</h2>
-        READ-FILE ( a n fh -- n ior )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>FILE-POSITION</h2>
+( fh -- n ior ) ( fileid -- ud ior ) ud is the current file position for the file identified by fileid. ior is the implementation-defined I/O result code. ud is undefined if ior is non-zero.
 
+<h2>FILE-SIZE</h2>
+( fh -- n ior ) ( fileid -- ud ior ) "ud is the size
 
-        <h2>FILE-POSITION</h2>
-        FILE-POSITION ( fh -- n ior )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>FLUSH-FILE</h2>
+( fileid -- ior ) "Attempt to force any buffered information written to the file referred to by fileid to be written to mass storage
 
+<h2>include</h2>
+"( ""name"" -- )" "Using the next word in the input stream
 
-        <h2>REPOSITION-FILE</h2>
-        REPOSITION-FILE ( n fh -- ior )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>INCLUDED</h2>
+"( a n -- ) ( i * x c-addr u -- j * x ) Typical use: ... S"" filename"" INCLUDED ... " "Remove c-addr u from the stack. Save the current input source specification
 
+<h2>R/O</h2>
+( -- mode ) read only mode - used with OPEN-FILE
 
-        <h2>FILE-SIZE</h2>
-        FILE-SIZE ( fh -- n ior )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>R/W</h2>
+( -- mode ) read write mode - used with OPEN-FILE
 
+<h1> ior is zero and u2 is equal to u1.</h1>
+<h1> ior is zero and u2 is the number of characters actually read.</h1>
+<h1> ior is zero and u2 is zero.</h1>
+<h2>remember</h2>
+( -- ) Save a snapshot to the default file (./myforth or /spiffs/myforth on ESP32)
 
-        <h1>WiFi</h1>
+<h2>reset</h2>
+( -- ) Reset removes the custom message
 
-        These words are inside the WiFi vocabulary.
+<h2>RESET </h2>
+( -- )  Delete the default filename.
 
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1> the portion of the file added as a result of the operation might not have been written.</h1>
+<h2>restore</h2>
+"( ""name"" -- )" Restore a snapshot from a file
 
-        WiFi.config ( ip dns gateway subnet -- )   Packaged a.b.c.d little-endian
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>revive</h2>
+( -- ) Restore the default filename
 
-        Wifi.begin ( ssid-z password-z -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>save</h2>
+"( ""name"" -- )" Saves a snapshot of the current dictionary to a file
 
-        Wifi.disconnect ( -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>startup:</h2>
+"( ""name"" -- )" "Save a snapshot to the default file arranging for ""name"" to be run on startup SEE EXAMPLE B743"
 
-        WiFi.status ( -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>W/O</h2>
+( -- mode ) write only mode - used with OPEN-FILE
 
-        WiFi.macAddress ( a -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Input / Output</h2>
+ 
 
-        WiFi.localIP ( -- ip )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>adc</h2>
+( pin# -- n ) alias for analogRead - see example below
 
-        WiFi.mode ( mode -- ) WIFI_MODE_NULL WIFI_MODE_STA WIFI_MODE_AP WIFI_MODE_APSTA
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>analogRead</h2>
+( pin -- n ) Analog read from 0-4095
 
-        WiFi.setTxPower ( powerx4 -- )   Set power x4
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>dacWrite</h2>
+( pin 0-255 -- ) "Write to DAC (pin 25
 
-        WiFi.getTxPower ( -- powerx4 )   Get power x4
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>digitalRead</h2>
+( pin -- value ) Read GPIO state - see example below
 
+<h2>digitalWrite</h2>
+( pin value -- ) Set GPIO pin state
 
-        <h1>mDNS</h1>mDNS
+<h1>forth</h1>
+<h1>forth</h1>
+<h2>pulseIn</h2>
+( pin value usec -- usec/0 ) Wait for a pulse
 
-        <h2>MDNS.begin</h2>
-        MDNS.begin ( name-z -- )   Start multicast dns
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>tone</h2>
+( channel freq ) Write tone frequency
 
+<h2>Interrupts</h2>
+ 
 
-        <h1>SPIFFS</h1>
+<h2>timer_isr_register</h2>
+( group timer xt arg ret -- 0/err ) 
 
-        These words are inside the SPIFFS vocabulary.
+<h2>esp_intr_alloc</h2>
+( source flags xt args handle* -- 0/err ) 
 
-        <h2>SPIFFS.begin</h2>
-        SPIFFS.begin ( format-on-fail path-z max-files -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>ESP_INTR_FLAG_DEFAULT</h2>
+( -- 0 ) Default handler allows per pin routing
 
-        <h2>SPIFFS.end</h2>
-        SPIFFS.end ( -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>ESP_INTR_FLAG_EDGE</h2>
+( -- 512 ) gpio_install_isr_service flag
 
+<h2>ESP_INTR_FLAG_INTRDISABLED</h2>
+( -- 2048 ) gpio_install_isr_service flag
 
-        <h2>SPIFFS.format</h2>
-        SPIFFS.format ( -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>ESP_INTR_FLAG_IRAM</h2>
+( -- 1024 ) gpio_install_isr_service flag
 
+<h2>ESP_INTR_FLAG_LEVELn</h2>
+( n1 -- n2 ) "n2 = 2 to the power n1
 
-        <h2>SPIFFS.totalBytes</h2>
-        SPIFFS.totalBytes ( -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>ESP_INTR_FLAG_NMI</h2>
+( -- 128 ) gpio_install_isr_service flag
 
+<h2>ESP_INTR_FLAG_SHARED</h2>
+( -- 256 ) gpio_install_isr_service flag
 
-        <h2>SPIFFS.usedBytes</h2>
-        SPIFFS.usedBytes ( -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>esp_intr_alloc</h2>
+ 
 
+<h2>esp_intr_free</h2>
+( handle -- 0/err ) 
 
-        <h1>WebServer</h1>
+<h2>gpio_config</h2>
+( gpio_config_t* -- 0/err ) "GPIO common configuration. Configure GPIO’s Mode
 
-        These words are inside the WebServer vocabulary.
+<h2>gpio_deep_sleep_hold_dis</h2>
+( -- ) Disable all digital gpio pad hold function during Deep-sleep
 
-        <h2>WebServer.new</h2>
-        WebServer.new ( port -- ws )   Allocate new webserver object
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_deep_sleep_hold_en</h2>
+( -- ) "Enable all digital gpio pad hold function during Deep-sleep. When the chip is in Deep-sleep mode
 
+<h2>gpio_get_drive_capability</h2>
+( pin cap* -- 0/err ) 
 
-        <h2>WebServer.delete</h2>
-        WebServer.delete ( ws -- )   Delete webserver object
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_get_level</h2>
+( pin -- level ) GPIO get input level of 'pin'
 
+<h2>gpio_hold_dis</h2>
+( pin -- 0/err ) 
 
-        <h2>WebServer.begin</h2>
-        WebServer.begin ( port ws -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_hold_en</h2>
+( pin -- 0/err ) 
 
+<h2>gpio_install_isr_service</h2>
+( a -- ) "a = combination of gpio_install_isr_service flags - Install the driver’s GPIO ISR handler service
 
-        <h2>WebServer.stop</h2>
-        WebServer.stop ( ws -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>interrupts</h1>
+<h1>interrupts</h1>
+<h2>gpio_intr_disable</h2>
+( pin -- 0/err ) Disable GPIO module interrupt signal for 'pin'
 
+<h2>gpio_intr_enable</h2>
+( pin -- 0/err ) Enable GPIO module interrupt signal for'pin'
 
-        <h2>WebServer.on</h2>
-        WebServer.on ( path-z xt ws -- ) Set up a web path handle callback
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>#GPIO_INTR_HIGH_LEVEL</h2>
+( -- 5 ) constant - e.g. 2 #GPIO_INTR_HIGH_LEVEL gpio_set_intr_type
 
+<h2>#GPIO_INTR_LOW_LEVEL</h2>
+( -- 4 ) constant - e.g. 2 #GPIO_INTR_LOW_LEVEL gpio_set_intr_type
 
-        <h2>WebServer.handleClient</h2>
-        WebServer.handleClient ( ws -- )   Handle one client request
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>interrupts</h1>
+<h1>interrupts</h1>
+<h2>gpio_isr_handler_add</h2>
+pin xt 0 -- 0/err ) "Having already set up the interrupt type
 
+<h1>interrupts</h1>
+<h2>gpio_isr_handler_remove</h2>
+( pin -- 0/err ) Remove ISR handler for the corresponding GPIO pin
 
-        <h2>WebServer.hasArg</h2>
-        WebServer.hasArg ( z ws -- f )   By name
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_pulldown_dis</h2>
+( pin -- 0/err ) Disbale pull down load on 'pin'
 
+<h2>gpio_pulldown_en</h2>
+( pin -- 0/err ) Enable pull down load on 'pin'
 
-        <h2>WebServer.arg</h2>
-        WebServer.arg ( z ws -- z )   By name
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_pullup_dis</h2>
+( pin -- 0/err ) Disable pull up load on 'pin'
 
+<h2>gpio_pullup_en</h2>
+( pin -- 0/err ) Enable pull up load on 'pin'
 
-        <h2>WebServer.argi</h2>
-        WebServer.argi ( n ws -- z )   By index
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_reset_pin</h2>
+( pin -- 0/err ) "Reset a gpio to default state (select gpio function
 
+<h2>gpio_set_direction</h2>
+( pin mode -- 0/err ) Set gpio signal direction of 'pin'
 
-        <h2>WebServer.argName</h2>
-        WebServer.argName ( n ws -- z)   By index
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_set_drive_capability</h2>
+( pin cap -- 0/err ) Set GPIO pad 'pin' drive capability or strength 'cap'
 
+<h2>gpio_set_intr_type</h2>
+( pin type -- 0/err ) "Set the required i/o pin to the interrupt type
 
-        <h2>WebServer.args</h2>
-        WebServer.args ( ws -- n )   Number of args
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_set_level</h2>
+( pin level -- 0/err ) GPIO set the output level pf 'pin' =1 or 0
 
+<h2>gpio_set_pull_mode</h2>
+( pin mode -- 0/err ) Configure GPIO 'pin' pull-up/pull-down resistors by means of 'mode'. GPIO 34-39 don't have this facility
 
-        <h2>WebServer.setContentLength</h2>
-        WebServer.setContentLength ( n ws -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_uninstall_isr_service</h2>
+( -- ) "Uninstall the driver’s GPIO ISR service
 
+<h2>gpio_wakeup_disable</h2>
+( pin -- 0/err ) Disable GPIO wake-up function on 'pin'
 
-        <h2>WebServer.sendHeader</h2>
-        WebServer.sendHeader ( name-z value-z fist ws -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>gpio_wakeup_enable</h2>
+( pin type -- 0/err ) Enable GPIO wake-up function on 'pin' - only type #GPIO_INTR_LOW_LEVEL or #GPIO_INTR_HIGH_LEVEL can be used
 
+<h1>interrupts</h1>
+<h2>LED control - pulse width modulation</h2>
+ 
 
-        <h2>WebServer.send</h2>
-        WebServer.send ( code mimetype data ws -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>duty</h2>
+( channel duty -- ) "like ledcWrite
 
+<h1>forth</h1>
+<h2>freq</h2>
+( channel freq -- ) "like ledcSetup
 
-        <h2>WebServer.sendContent</h2>
-        WebServer.sendContent ( z ws -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>forth</h1>
+<h2>ledcAttachPin</h2>
+( pin channel -- ) Assigns which 'channel' (0-15) of the PWM engine the 'pin' is connected to
 
+<h2>ledcDetachPin</h2>
+( pin -- ) Detaches #pin' from the pwm engine
 
-        <h2>WebServer.method</h2>
-        WebServer.method ( ws -- n )   GET / POST etc.
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>ledcRead</h2>
+( channel -- n ) Read the current dutycycle setting for 'channel'
 
+<h2>ledcReadFreq</h2>
+( channel -- freq ) "Get frequency (x 1
 
-        <h1>Wire</h1>
+<h2>ledcSetup</h2>
+( channel freq resolution -- freq ) Setup one of the 16 pwm channels (0-15) at frequency=freq*1000 Hz  with 'resolution'
 
-        These words are inside the Wire vocabulary.
+<h2>ledcWrite</h2>
+( channel duty -- ) Set 'channel'  (0-15) at 'duty' level (0-100)
 
-        <h2>Wire.begin</h2>
-        Wire.begin ( -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>ledcWriteNote</h2>
+( channel note octave -- freq ) "channel 0-12
 
+<h1>ledc</h1>
+<h1>ledc</h1>
+<h2>Logic</h2>
+ 
 
-        <h2>Wire.setPins</h2>
-        Wire.setPins ( sda scl -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>AND</h2>
+( n1 n2 – n3 ) n3 = n1 AND n2 (bit wise)
 
+<h2>invert</h2>
+ 
 
-        <h2>Wire.setClock</h2>
-        Wire.setClock ( frequency -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>LSHIFT</h2>
+( x1 u -- x2 ) "Perform a logical left shift of u bit-places on x1
 
+<h2>OR</h2>
+( n1 n2 – n3 ) n3 = n1 OR n2 ( bit-wise )
 
-        <h2>Wire.getClock</h2>
-        Wire.getClock ( -- frequency )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>RSHIFT</h2>
+( x1 u -- x2 ) "Perform a logical right shift of u bit-places on x1
 
+<h2>XOR</h2>
+( n1 n2 -- n3 ) n3 = n1 XOR n2 ( bit-wise)
 
-        <h2>Wire.setTimeout</h2>
-        Wire.setTimeout ( ms -- ) Default is 50ms
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Looping</h2>
+ 
 
+<h1> then inside ?do .. loop is NOT executed</h1>
+<h2>+loop</h2>
+( n -- ) e.g. : +looptest 20 0 do i . 2 +loop ; results when run in 0 2 4 6 8 10 12 14 16 18 being displayed
 
-        <h2>Wire.getTimeout</h2>
-        Wire.getTimeout ( -- ms )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>again</h2>
+( -- ) begin <forth words> again
 
+<h1>forth</h1>
+<h1>forth</h1>
+<h2>EXIT</h2>
+( -- ) "Return control to the calling definition. Before executing EXIT within a do-loop
 
-        <h2>Wire.lastError</h2>
-        Wire.lastError ( -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>forth</h1>
+<h2>i</h2>
+( -- n ) Place current loop index on top of stack
 
+<h2>j</h2>
+( -- n ) Place index count for next outer lop top of stack
 
-        <h2>Wire.getErrorText</h2>
-        Wire.getErrorText ( n -- z )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>leave</h2>
+( -- ) Force do loop termination
 
+<h2>loop</h2>
+( -- ) part of do <forth words> loop construct
 
-        <h2>Wire.beginTransmission</h2>
-        Wire.beginTransmission ( n -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>next</h2>
+( -- ) part of for <forth words> next construct
 
+<h2>repeat</h2>
+( -- ) part of begin <forth words that leave f on the stack> while < more forth words> repeat
 
-        <h2>Wire.endTransmission</h2>
-        Wire.endTransmission ( sendstop -- f ) Default is true
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>forth</h1>
+<h2>until</h2>
+( f -- ) begin <forth words that leave f on stack> until
 
+<h2>while</h2>
+( f -- ) part of begin <forth words that leave f on the stack> while < more forth words> repeat
 
-        <h2>Wire.requestFrom</h2>
-        Wire.requestFrom ( address quantity sendstop -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Maths</h2>
+ 
 
+<h2>-</h2>
+( n1 n2 -- n3 ) n3 = n1 - n2
 
-        <h2>Wire.writeTransmission</h2>
-        Wire.writeTransmission ( addr a n sendstop -- err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>*</h2>
+( n1 n2 -- n3 ) n3 = n1 * n2
 
+<h2>*/</h2>
+( n1 n2 n3 -- n4 ) Multiply n1 by n2 producing the intermediate double-cell result d. Divide d by n3 giving the single-cell quotient n4
 
-        <h2>Wire.readTransmission</h2>
-        Wire.readTransmission ( addr a n sendstop acount -- err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>*/MOD</h2>
+( n1 n2 -n3 -- n4 n5 ) Multiply n1 by n2 producing the intermediate double-cell result d. Divide d by n3 producing the single-cell remainder n4 and the single-cell quotient n5
 
+<h2>/</h2>
+( n1 n2 -- n3 ) "Divide n1 by n2
 
-        <h2>Wire.write</h2>
-        Wire.write ( a n -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>/mod</h2>
+( n1 n2 -- n3 n4 ) "Divide n1 by n2
 
+<h2>+</h2>
+( n1 n2 -- n3 ) n3 = n1 + n1
 
-        <h2>Wire.available</h2>
-        Wire.available ( -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>2*</h2>
+( n1 -- n2 ) n2 = n1 * 2
 
+<h2>2/</h2>
+( n1 -- n2 ) n2 = n1 / 2
 
-        <h2>Wire.read</h2>
-        Wire.read ( -- ch )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>4*</h2>
+( n1 -- n2 ) n2 = n1 * 4
 
+<h2>4/</h2>
+( n1 -- n2 ) n2 = n1 / 4
 
-        <h2>Wire.peek</h2>
-        Wire.peek ( -- ch )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>abs</h2>
+( n1 -- n2 ) n2 is the absolute value of n1
 
+<h2>max</h2>
+( n1 n2 -- n3 ) n3 = the larger of n1 or n2
 
-        <h2>Wire.busy</h2>
-        Wire.busy ( -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>min</h2>
+( n1 n2 – n3 ) n3 = the smaller of n1 or n2
 
+<h2>mod</h2>
+( n1 n2 – n3 ) "Divide n1 by n2
 
-        <h2>Wire.flush</h2>
-        Wire.flush ( -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>negate</h2>
+( n – -n ) Two's complement of top of stack
 
+<h2>U/MOD</h2>
+( u1 u2 -- rem quot ) "Unsigned division
 
-        <h1>Camera</h1>
+<h2>1+</h2>
+( n-- n+1 ) increment value on the stack by 1 
 
-        These words are inside the camera vocabulary.
+<h2>1-</h2>
+( n-- n1- ) decrement value on the stack by 1 
 
-        <h2>esp_camera_init</h2>
-        esp_camera_init ( config -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Memory</h2>
+ 
 
+<h2>!</h2>
+( n addr --> ) store x at addr
 
-        <h2>esp_camera_deinit</h2>
-        esp_camera_deinit ( -- f )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>@</h2>
+( addr --n ) Retrieves the integer value n stored at address addr
 
+<h2>+!</h2>
+( n addr -- ) Increments the content of a variable by the value n
 
-        <h2>esp_camera_fb_get</h2>
-        esp_camera_fb_get ( -- fb )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>forth</h1>
+<h1>forth</h1>
+<h2>2!</h2>
+( n1 n2  addr --> ) "store n1
 
+<h2>2@</h2>
+( addr --n1 n2 ) "read n1
 
-        <h2>esp_camera_fb_return</h2>
-        esp_camera_fb_return ( fb -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>C!</h2>
+( c addr --> ) store byte c at addr
 
+<h2>C@</h2>
+( addr --c ) read byte c from addr
 
-        <h2>esp_camera_sensor_get</h2>
-        esp_camera_sensor_get ( -- sensor )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>allocate</h2>
+( n -- a ior ) "reserve a memory chunk of n bytes
 
+<h2>cell/</h2>
+( n1 -- n2 ) n2 = n1 / 4
 
-        <h1>SD_MMC</h1>
+<h2>cell+</h2>
+( n1 -- n2 ) n2 = n1 + 4
 
-        These words are inside the SD_MMC vocabulary.
+<h2>cells</h2>
+( n1 -- n2 ) n2 = n1 * 4
 
+<h2>cmove</h2>
+( addr1 addr2 n -- ) "move n bytes from addr1 to addr2
 
-        <h2>SD_MMC.begin</h2>
-        SD_MMC.begin ( mount mode1bit )   default mode1bit=false
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>cmove></h2>
+( addr1 addr2 n -- ) "copy n bytes from memory starting at c-addr1 to that starting at c-addr2
 
+<h2>fill</h2>
+( addr n c ) fill memory from addr for n bytes with byte c
 
-        <h2>SD_MMC.end</h2>
-        SD_MMC.end ( -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>free</h2>
+( a --  ) free memory previously reserved allocate - see also resize
 
+<h2>L!</h2>
+( n addr -- ) write n to addr in real ESP32 memory space 
 
-        <h2>SD_MMC.cardType</h2>
-        SD_MMC.cardType ( -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>L@</h2>
+( addr --n ) read n from real ESP32 memory space
 
+<h2>resize</h2>
+( a n -- a ior ) "ior=true if a memory chunk reserved with MALLOC resized to n bytes correctly
 
-        <h2>SD_MMC.totalBytes</h2>
-        SD_MMC.totalBytes ( -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Number I/O</h2>
+ 
 
+<h2>?</h2>
+( addr -- ) display value at addr
 
-        <h2>SD_MMC.usedBytes</h2>
-        SD_MMC.usedBytes ( -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>.</h2>
+( n – ) display top of stack
 
+<h2>#</h2>
+( ud1 -- ud2 ) Convert next digit of ud1 and HOLD it
 
-        <h1>Interrupts</h1>
+<h2>#></h2>
+( ud -- addr n ) Drop ud and prepare string for TYPE
 
-        These words are inside the INTERRUPTS vocabulary.
+<h2>#s</h2>
+( ud -- 0 0 ) Convert and HOLD all remaining significant digits
 
-        <h1>High Level words</h1>
+<h2><#</h2>
+( --  ) Begin a formatted number conversion
 
+<h2>base</h2>
+( -- addr ) Stores the current number display base - defaults to 10 decimal
 
-        <h2>pinchange</h2>
-        pinchange ( xt pin -- ) Call xt when pin changes.
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>binary</h2>
+( – ) Set current number base to 2 decimal
 
+<h2>decimal</h2>
+( – ) Set current number base to 10 decimal
 
-        Example:
+<h2>extract</h2>
+( n base -- n c ) extracts the least significant digit from a number n. n is divided by the radix in BASE and returned on the stack
 
-        17 input pinMode
-        : test ." pinvalue: " 17 digitalRead . cr ;
-        ' test 17 pinchange
+<h2>hex</h2>
+( – ) Set current number base to 16 decimal
 
-        <h1>Low Level words</h1>
+<h2>hold</h2>
+( c -- ) Insert character into formatted string
 
+<h2>n.</h2>
+( n -- ) "display n in decimal
 
-        <h2>ESP_INTR_FLAG_DEFAULT</h2>
-        ESP_INTR_FLAG_DEFAULT -- Default handler allows per pin routing
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>octal</h2>
+( -- ) Set current number base to 8 decimal
 
+<h2>pad</h2>
+( -- addr ) returns the address of the text buffer where numbers are constructed and text strings are stored temporarily
 
-        <h1>Various triggers</h1>
+<h2>sign</h2>
+(n ud -- ud ) HOLD minus sign only if n is negative
 
-        <h2>GPIO_INTR_DISABLE</h2>
-        GPIO_INTR_DISABLE
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>u.</h2>
+( n -- ) display n in the current number base
 
+<h2>Registers</h2>
+ 
 
-        <h2>GPIO_INTR_POSEDGE</h2>
-        GPIO_INTR_POSEDGE
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>m!</h2>
+ 
 
+<h2>m@</h2>
+ 
 
-        <h2></h2>
-        GPIO_INTR_NEGEDGE
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD card</h2>
+ 
 
-        <h2></h2>
-        GPIO_INTR_ANYEDGE
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>SD</h1>
+<h1>These words are inside the SD vocabulary. They allow use of an SDcard over SPI.</h1>
+<h2>SD.begin </h2>
+( -- ok ) "uses all the defaults ""/sd"" etc."
 
-        <h2></h2>
-        GPIO_INTR_LOW_LEVEL
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD.beginDefaults ( -- sspin SPIClass frequency mountpointsz maxfiles format_if_empty )</h2>
+ 
 
-        <h2></h2>
-        GPIO_INTR_HIGH_LEVEL
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>"(    SS    SPI      4000000   ""/sd""        5        false )"</h2>
+ 
 
+<h2>SD.beginFull ( sspin SPIClass frequency mountpoint maxfiles format_if_empty -- ok )</h2>
+ 
 
-        <h2>gpio_config</h2>
-        gpio_config ( gpio_config_t* -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD.end </h2>
+( -- ) 
 
-        <h2>gpio_reset_pin</h2>
-        gpio_reset_pin ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD.cardType </h2>
+( -- n ) 
 
-        <h2>gpio_set_intr_type</h2>
-        gpio_set_intr_type ( pin type -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD.totalBytes </h2>
+( -- n ) 
 
-        <h2>gpio_intr_enable</h2>
-        gpio_intr_enable ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD.usedBytes </h2>
+( -- n ) 
 
-        <h2>gpio_intr_disable</h2>
-        gpio_intr_disable ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD_MMC card</h2>
+ 
 
-        <h2>gpio_set_level</h2>
-        gpio_set_level ( pin level -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD_MMC.begin</h2>
+( mount mode1bit ) default mode1bit=false
 
+<h2>SD_MMC.cardType</h2>
+( -- n ) 
 
-        <h2>gpio_get_level</h2>
-        gpio_get_level ( pin -- level )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD_MMC.end</h2>
+( -- ) 
 
-        <h2>gpio_set_direction</h2>
-        gpio_set_direction ( pin mode -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD_MMC.totalBytes</h2>
+( -- n ) 
 
-        <h2>gpio_set_pull_mode</h2>
-        gpio_set_pull_mode ( pin mode -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SD_MMC.usedBytes</h2>
+( -- n ) 
 
-        <h2>gpio_wakeup_enable</h2>
-        gpio_wakeup_enable ( pin type -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>Serial communication</h1>
+<h2>Serial.available</h2>
+( -- f ) Get the number of bytes (characters) available for reading from the serial port. This is data that’s already arrived and stored in the serial receive buffer (which holds 64 bytes)
 
-        <h2>gpio_wakeup_disable</h2>
-        gpio_wakeup_disable ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Serial.begin</h2>
+( baud -- ) Start serial port. Sets the data rate in bits per second (baud) for serial data transmission
 
-        <h2>gpio_pullup_en</h2>
-        gpio_pullup_en ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Serial.end</h2>
+( -- ) "Disables serial communication
 
+<h2>Serial.flush</h2>
+( -- ) Waits for the transmission of outgoing serial data to complete
 
-        <h2>gpio_pullup_dis</h2>
-        gpio_pullup_dis ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Serial.readBytes</h2>
+( a length -- n ) "Serial.readBytes reads characters from the serial port into a buffer
 
+<h2>Serial.write</h2>
+( a n -- n ) Writes n bytes of data to the serial port from buffer at address a
 
-        <h2>gpio_pulldown_en</h2>
-        gpio_pulldown_en ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Sockets</h2>
+ 
 
+<h2>accept</h2>
+( addr length-- f ) 
 
-        <h2>gpio_pulldown_dis</h2>
-        gpio_pulldown_dis ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>AF_INET</h2>
+( -- 2) constant
 
+<h2>bind</h2>
+( addr -- f ) 
 
-        <h2>gpio_hold_en</h2>
-        gpio_hold_en ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>connect</h2>
+( addr -- f ) 
 
+<h2>errno</h2>
+( -- f ) f = the error number of the last sockets action
 
-        <h2>gpio_hold_dis</h2>
-        gpio_hold_dis ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>listen</h2>
+( socket backlog -- f ) Listen for socket connections and limit the queue of incoming connections - 'backlog' is the max no. of connections that can be put on hold
 
-        <h2>gpio_deep_sleep_hold_en</h2>
-        gpio_deep_sleep_hold_en ( -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>poll</h2>
+( pollfd n1 n2 -- f ) 
 
-        <h2>gpio_deep_sleep_hold_dis</h2>
-        gpio_deep_sleep_hold_dis ( -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>select</h2>
+( n1 n2 n3 n4 -- f ) 
 
-        <h2>gpio_install_isr_service</h2>
-        gpio_install_isr_service ( a -- ) Typically ESP_INTR_FLAG_DEFAULT
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>sizeof(sockaddr_in)</h2>
+( -- 16 ) constant
 
+<h2>SOCK_STREAM</h2>
+( -- 1) constant
 
-        <h2>        gpio_uninstall_isr_service</h2>
-        gpio_uninstall_isr_service
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>sockets</h1>
+<h2>Serial Peripheral Interface Flash File System</h2>
+ 
 
-        <h2>gpio_isr_handler_add</h2>
-        gpio_isr_handler_add ( pin xt arg -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SPIFFS.begin</h2>
+( format-on-fail path-z max-files -- f ) "Mounts file system. It must be called before any other SPIFFS words are used. Returns true if file system was mounted successfully
 
-        <h2>gpio_isr_handler_remove</h2>
-        gpio_isr_handler_remove ( pin -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SPIFFS.end</h2>
+( -- ) Unmounts the flash memory file system
 
+<h2>SPIFFS.format</h2>
+( -- f ) Format the flash memory 'disk'. returns true if successful
 
-        <h2>gpio_set_drive_capability</h2>
-        gpio_set_drive_capability ( pin cap -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SPIFFS.totalBytes</h2>
+( -- n ) Returns the total capacity of the flash memory 'disk'
 
-        <h2>gpio_get_drive_capability</h2> 
-        gpio_get_drive_capability ( pin cap* -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SPIFFS.usedBytes</h2>
+( -- n ) Returns the total space occupied by flash memory files
 
-        <h2>esp_intr_alloc</h2> 
-        esp_intr_alloc ( source flags xt args handle* -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Stack functions</h2>
+ 
 
-        <h2>esp_intr_free</h2>         
-        esp_intr_free ( handle -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>-rot</h2>
+( x1 x2 x3 -- x2 x3 x1) rotate 3rd cell to top
 
-        <h2>timer_isr_register</h2> 
-        timer_isr_register ( group timer xt arg ret -- 0/err )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>>R</h2>
+( n – ) move n to the return stack
 
+<h2>2drop</h2>
+( n1 n2 – ) discard the top of stack
 
-        <h1>Tasks</h1>
+<h2>2dup</h2>
+( n1 n2 – n1 n2 n1 n2) duplicate the top two items on the data stack
 
-        These words are inside the TASKS vocabulary.
+<h1>forth</h1>
+<h2>DROP</h2>
+( n – ) discard the top of stack
 
-        <h2></h2> 
-        PAUSE ( -- ) Yield to other tasks.
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>DUP</h2>
+( n – n n ) duplicate the top of stack
 
-        <h2>MS</h2> 
-        MS ( n -- ) Pause for some number of milliseconds (yields to other tasks).
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>nip</h2>
+( n1 n2 -- n2 ) remove the 2nd item on the data stack
 
-        <h2>TASK</h2> 
-        TASK ( xt dsz rsz "name" -- ) Create a new task with dsz size data stack
-        and rsz size return stack running xt.
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>OVER</h2>
+( n1 n2 -- n1 n2 n1 ) duplicate 2nd item on the data stack
 
+<h2>R@</h2>
+( -- n ) copy the top of the return stack to the top of data stack
 
-        <h2>START-TASK</h2> 
-        START-TASK ( task -- ) Activate a task.
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>R></h2>
+( – n ) Move top of return stack to data stack
 
-        <h2>.TASKS</h2> 
-        .TASKS ( -- ) List running tasks.
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>rdrop</h2>
+( -- ) drop the top of the return stack
 
-        Example:
-        tasks
-        : hi   begin ." Time is: " ms-ticks . cr 1000 ms again ;
-        ' hi 100 100 task my-counter
-        my-counter start-task 
+<h2>rot</h2>
+( n1 n2 n3 – n2 n3 n1 ) rotate 3rd cell to top
 
-        <h1>Timers</h1>
+<h2>RP!</h2>
+( addr -- ) set the return stack pointer
 
-        These words are inside the TIMERS vocabulary. 
-        NOTE: These are low level ESP32 timers. For a periodic background operation, you’ll probably want to use TASKS.
+<h2>RP@</h2>
+( -- addr ) read the return stack pointer
 
-        High Level words:
+<h2>rp0</h2>
+( -- addr ) constant - the initial value of the return stack pointer at switch-on
 
-        ( timer t = 0-3 )
+<h2>SP!</h2>
+( addr -- ) Set the data stack pointer
 
-        <h2>interval</h2> 
-        interval ( xt usec t -- ) Setup timer t to call xt each after usec
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>SP@</h2>
+( -- addr ) Read the data stack pointer
 
-        <h2>rerun</h2> 
-        rerun ( t -- ) Rerun timer t triggering
-        <h3>Description</h3>
-        <h3>Examples</h3>
-        Example:
-        timers
-        : hi   ." hi" cr   0 rerun ;
-        ' hi 1000000 0 interval ( run hi every second )
+<h2>sp0</h2>
+( -- n ) constant - the initial value of the data stack pointer at switch-on
 
-        <h1>Medium Level words</h1>
+<h2>SWAP</h2>
+( n1 n2 – n2 n1 ) swap the top two data stack entries
 
-        <h2>timer@</h2> 
-        timer@ ( t -- lo hi )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>Streams</h2>
+ 
 
-        <h2>timer!</h2> 
-        timer! ( lo hi t -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>>offset</h2>
+ 
 
-        <h2>alarm</h2> 
-        alarm ( t -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>>read</h2>
+ 
 
-        <h2>enable!</h2> 
-        enable! ( f t -- ) Timer enable/disable
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>>stream</h2>
+ 
 
-        <h2>increase!</h2> 
-        increase! ( f t -- ) Timer increasing/decreasing
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>>write</h2>
+ 
 
-        <h2>divider!</h2> 
-        divider! ( n t -- ) Timer divider 2 - 65535
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>ch>stream</h2>
+ 
 
-        <h2>edgeint!</h2> 
-        edgeint! ( f t -- ) Edge trigger
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>empty?</h2>
+ 
 
-        <h2>levelint!</h2> 
-        levelint! ( f t -- ) Level trigger
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>full?</h2>
+ 
 
-        <h2>alarm-enable!</h2> 
-        alarm-enable! ( f t -- ) Alarm enable
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>stream</h2>
+"( n ""name"" -- )" "define a stream
 
-        <h2>alarm-enable@</h2> 
-        alarm-enable@ ( t -- f ) Alarm enabled?
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>stream#</h2>
+ 
 
-        <h2>onalarm</h2> 
-        onalarm ( xt t -- ) Set callback
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>stream></h2>
+ 
 
+<h2>stream>ch</h2>
+ 
 
-        <h1>Low Level words</h1>
+<h2>wait-read</h2>
+ 
 
-        ( group n = 0/1, timer x = 0/1, watchdog m = 0-5 )
+<h2>wait-write</h2>
+ 
 
-        <h2>TIMGn_TxCONFIG_REG</h2> 
-        TIMGn_TxCONFIG_REG ( n x -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>String functions</h2>
+ 
 
-        <h2>TIMGn_TxLOHI_REG</h2> 
-        TIMGn_TxLOHI_REG ( n x -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>forth</h1>
+<h2>$place</h2>
+( addr cnt -- ) 
 
-        <h2>TIMGn_TxUPDATE_REG</h2> 
-        TIMGn_TxUPDATE_REG ( n x -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>"r"""</h2>
+"( ""string"" -- a n )" Creates a temporary counted string
 
-        <h2>TIMGn_TxALARMLOHI_REG</h2> 
-        TIMGn_TxALARMLOHI_REG ( n x -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>r|</h2>
+( string| -- a n ) Creates a temporary counted string ending with | - see the example below that creates a stand alone program
 
-        <h2>TIMGn_TxLOADLOHI_REG</h2> 
-        TIMGn_TxLOADLOHI_REG ( n x -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>"s"""</h2>
+( -- addr cnt ) "creates a string until a terminating "". Leaves the string address addr and the character count cnt on the stack e.g. s"" Hello Bob"""
 
-        <h2>TIMGn_TxLOAD_REG</h2> 
-        TIMGn_TxLOAD_REG ( n x -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>S>NUMBER?</h2>
+( addr cnt -- n f=true | f=false ) "converts the counted ascii string stored at addr to number n with f=true
 
+<h2>s>z</h2>
+( a n -- z ) Convert a counted string string to null terminated string
 
-        <h2>TIMGn_Tx_WDTCONFIGm_REG</h2> 
-        TIMGn_Tx_WDTCONFIGm_REG ( n m -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>startswith?</h2>
+( addr1 n1 addr2 n2 -- f ) "f=true if string at addr1 starts with string at addr2
 
-        <h2>TIMGn_Tx_WDTFEED_REG</h2> 
-        TIMGn_Tx_WDTFEED_REG ( n -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>str</h2>
+( n -- addr cnt ) convert n to a counted string
 
-        <h2>TIMGn_Tx_WDTWPROTECT_REG</h2> 
-        TIMGn_Tx_WDTWPROTECT_REG ( n -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>str=</h2>
+( addr1 n1 addr2 n2 -- f ) "f=true if the two counted strings are equal
 
-        <h2>TIMGn_RTCCALICFG_REG</h2> 
-        TIMGn_RTCCALICFG_REG ( n -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>"z"""</h2>
+"( ""string"" -- addr )" Creates a null terminated string on the heap at addr
 
-        <h2>TIMGn_RTCCALICFG1_REG</h2> 
-        TIMGn_RTCCALICFG1_REG ( n -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>z>s</h2>
+( addr -- addr n ) Convert a null terminated string at addr to a counted string
 
-        <h2>TIMGn_Tx_INT_ENA_REG</h2> 
-        TIMGn_Tx_INT_ENA_REG ( n -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>System</h2>
+ 
 
-        <h2>TIMGn_Tx_INT_RAW_REG</h2> 
-        TIMGn_Tx_INT_RAW_REG ( n -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>#tib</h2>
+( -- addr ) variable
 
-        <h2>TIMGn_Tx_INT_ST_REG</h2> 
-        TIMGn_Tx_INT_ST_REG ( n -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>>in</h2>
+( -- addr ) variable
 
-        <h2>TIMGn_Tx_INT_CLR_REG</h2> 
-        TIMGn_Tx_INT_CLR_REG ( n -- a )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>1</h2>
+( -- -1 ) constant -1 left on the data stack
 
+<h2>bl</h2>
+( -- 32 ) returns the value of the SPACE char
 
-        <h1>RTOS</h1>
+<h2>bye</h2>
+( -- ) "deferred word
 
-        These words are inside the RTOS vocabulary.
+<h2>CELL</h2>
+( -- 4 ) returns the number of bytes per standard forth number - 32 bits
 
-        <h2>xPortGetCoreID</h2>
-        xPortGetCoreID ( -- n )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>current</h2>
+( -- addr ) points to a vocabulary thread to which new definitions are to be added
 
-        <h2>xTaskCreatePinnedToCore</h2> 
-        xTaskCreatePinnedToCore ( fn name stack-depth params priority taskout coreid -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>echo</h2>
+( -- addr ) "All input stream is echoed on output stream if echo = -1
 
-        <h2>vTaskDelete</h2> 
-        vTaskDelete ( task ) -- ) 
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h2>evaluate</h2>
+( addr cnt -- ) "evaluate the counted string at addr
 
+<h2>EXECUTE</h2>
+( xt -- ) Execute the word whose execution token is top of stack
 
-        <h1>ESP32 WebUI</h1>
+<h1>forth</h1>
+<h2>hld</h2>
+( -- adr ) holds a pointer in building a numeric output string
 
-        A terminal over the web can be activated. Contact at port printed or via mDNS http://forth/.
+<h1>forth</h1>
+<h2>LED</h2>
+( -- 2 ) Some ESP32 modules have an LED fitted on GPIO pin 2
 
-        webui ( network-z password-z -- )
-        <h3>Description</h3>
-        <h3>Examples</h3>
+<h1>forth</h1>
+<h2>nl</h2>
+( -- 10 ) the value of the NEWLINE character
 
+<h1>forth</h1>
+<h2>quit</h2>
+( -- ) "Leave stack intact
 
-        Usage:
+<h2>state</h2>
+( -- addr ) "system variable
 
-        z" NETWORK-NAME" z" PASSWORD" webui
+<h2>TERMINATE</h2>
+( n -- ) Call system exit
 
-        See web_interface.fs.
-        Autoexec.fs
+<h2>Tasks - multitasking</h2>
+ 
 
-        The system will automatically attempt to mount SPIFFS filesystem at /spiffs. It will then at start attempt to load /spiffs/autoexec.fs
+<h2>.tasks</h2>
+( -- ) List running tasks
 
-        One way this feature can be used to configure the Web UI to start by default. When doing this, be sure to test your Web UI settings work well first.
+<h2>pause</h2>
+( -- ) yield to other tasks
 
-        r| z" NETWORK-NAME" z" PASSWORD" webui | s" /spiffs/autoexec.fs" dump-file
+<h2>start-task</h2>
+( task -- ) Activate a task - see example below
 
-        To remove a previously configured autoexec.fs you will need to be able to reboot in a mode with Forth. One way to do this is to search for the line in the .ino file that refers to autoexec.fs and replace it with a different name. Then run the following:
+<h2>task</h2>
+"( xt dsz rsz ""name"" -- )" "Create a new task
 
-        s" /spiffs/autoexec.fs" delete-file
+<h2>main-task</h2>
+ 
 
-        See autoboot.fs.
-        Adding Words
+<h2>task-list</h2>
+ 
 
-        Adding words based on C functions can be done by editing the source code. For ESP32forth template.ino is the appropriate place.
+<h2>Telnet</h2>
+ 
 
-        Because of the use of X-Macros words can be added in as little as one line. Locate the macro called PLATFORM_OPCODE_LISTand add your words there.
+<h2>broker</h2>
+( --) Deferred word - executes broker-connection by default
 
-        NOTE: Be careful to end each line with a \ so the macros will chain correctly.
+<h2>broker-connection</h2>
+( -- ) Processing loop for the active TELNET link
 
-        To add a word containing only letters, numbers, and underscore you can use Y.
+<h2>client</h2>
+ 
 
-        Y(MY_WORD123, c_function_to_call()) \
+<h2>client-len</h2>
+( -- adr ) variable
 
-        If your word name contains other characters, instead use X. You will need to make up an alternate name for the middle parameter. It must contain only letters, numbers, and underscore. The name is not used anywhere else, but must be unique.
+<h2>clientfd</h2>
+( -- flag ) "value
 
-        X("myword!", MY_WORD_BANG, c_function_to_call()) \
+<h2>connection</h2>
+ 
 
-        Values from the data stack can be accessed via the variables tos (Top of Stack) and sp (Pointer to the rest of the stack). The stack has the data type cell_t.
+<h2>server</h2>
+( port -- ) Start telnet  server daemon on port - see example below
 
-        You can push a value of any type to the stack with the macro PUSH:
+<h2>sockfd</h2>
+( -- flag) "value
 
-        Y(MY_WORD, PUSH calculate_magic_value()) \
+<h2>telnet-emit</h2>
+( c -- ) Emit c character on the active telnet port
 
-        To simplify calling C functions, you can also refer to elements on the stack with the types positional names:
+<h2>telnet-emit'</h2>
+ 
 
-        n10 n9 n8 n7 n6 n5 n4 n3 n2 n1 n0 - Access stack as cell_t integer values
-        c4 c3 c2 c1 c0 - Access stack as char* values
-        b4 b3 b2 b1 b0 - Access stack as uint8_t* byte values
-        a6 a5 a4 a3 a2 a1 a0 - Access stack as void* values
+<h2>telnet-key</h2>
+( -- c ) Retrieve a character c from the active telnet port
 
-        Examples:
-        void send_message(const char *message, int code);
-        ...
-        X("send-message", SEND_MESSAGE, send_message(c1, n0)) \
+<h2>telnet-port</h2>
+( a n -- ) 
 
-        You can always replace the top item on the stack with SET:
+<h2>telnet-type</h2>
+(adr len -- ) Send a counted string on the active telnet port
 
-        Y(DECODE, SET decode_func(n0)) \
+<h2>Time / Timers</h2>
+ 
 
-        You can drop elements from the stack with DROP or DROPn(number). You can nip elements from below top of the stack with NIP or NIPn(number). Be aware that like PUSH this will cause stack indices to change.
+<h1>"There are two groups of two timer channels</h1>
+<h2>ms</h2>
+( n1 --  ) "pause for ""n"" milliseconds."
 
-        int my_cool_function(char *foo, int bar, uint8_t *baz);
-        ...
-        Y(MY_FUNC, n0 = my_cool_function(c2, n1, b0); NIPn(2)) \
+<h2>MS-TICKS</h2>
+( -- n1 ) Time since start in milliseconds
 
-        Multiple C statements can be included in the code area of a word, but care must be taken to generally avoid {}s. If you find you need nesting, a separate function is recommended.
+<h2>alarm</h2>
+( t -- a ) 
 
-        New variables can be declared in each word and are scoped to that word.
+<h2>alarm-enable!</h2>
+( f t -- ) Alarm enable
 
-        Y(MY_WORD, cell_t foo = n0; DROP; char *x = c0; DROP; \
-        PUSH my_func(foo, x)) \
-    </body>
-</html>
+<h2>alarm-enable@</h2>
+( t -- f ) Alarm enabled?
+
+<h2>autoreload!</h2>
+( v t -- ) 
+
+<h2>divider!</h2>
+( n t -- ) Timer divider 2 - 65535
+
+<h2>edgeint!</h2>
+( f t -- ) Edge trigger
+
+<h2>enable!</h2>
+( v t -- ) Timer enable/disable
+
+<h2>increase!</h2>
+( v t -- ) Timer increasing/decreasing
+
+<h2>int-enable!</h2>
+( f t -- ) 
+
+<h2>interval</h2>
+( xt usec t -- ) Setup timer t to call execution token xt after usec - see example below
+
+<h2>levelint!</h2>
+( v t -- ) Level trigger
+
+<h2>onalarm</h2>
+( xt t -- ) Set callback
+
+<h2>rerun</h2>
+( t -- ) Rerun timer t triggering
+
+<h2>t>nx</h2>
+( t -- n x ) "x=1 if  bit0 of t=1
+
+<h2>timer!</h2>
+( lo hi t -- ) 
+
+<h2>timer@</h2>
+( t -- lo hi ) 
+
+<h2>TIMG_BASE</h2>
+( -- $3ff5f000 ) constant
+
+<h2>TIMGn</h2>
+ 
+
+<h2>TIMGn_RTCCALICFG_REG</h2>
+( n -- a ) 
+
+<h2>TIMGn_RTCCALICFG1_REG</h2>
+( n -- a ) 
+
+<h2>TIMGn_Tx</h2>
+( n x -- a ) 
+
+<h2>TIMGn_Tx_INT_CLR_REG</h2>
+( n -- a ) 
+
+<h2>TIMGn_Tx_INT_ENA_REG</h2>
+( n -- a ) 
+
+<h2>TIMGn_Tx_INT_RAW_REG</h2>
+( n -- a ) 
+
+<h2>TIMGn_Tx_INT_ST_REG</h2>
+( n -- a ) 
+
+<h2>TIMGn_Tx_WDTCONFIGm_REG</h2>
+( n m -- a ) 
+
+<h2>TIMGn_Tx_WDTFEED_REG</h2>
+( n -- a ) 
+
+<h2>TIMGn_Tx_WDTWPROTECT_REG</h2>
+( n -- a ) 
+
+<h2>TIMGn_TxALARMLOHI_REG</h2>
+( n x -- a ) 
+
+<h2>TIMGn_TxCONFIG_REG</h2>
+( n x -- a ) 
+
+<h2>TIMGn_TxLOAD_REG</h2>
+( n x -- a ) 
+
+<h2>TIMGn_TxLOADLOHI_REG</h2>
+( n x -- a ) 
+
+<h2>TIMGn_TxLOHI_REG</h2>
+( n x -- a ) 
+
+<h2>TIMGn_TxUPDATE_REG</h2>
+( n x -- a ) 
+
+<h2>Two Wire Interface / I2C</h2>
+ 
+
+<h2>Wire.available</h2>
+( -- f ) Returns the number of bytes available for retrieval with Wire.read. This should be called on a master device after a call to Wire.requestFrom
+
+<h2>Wire.begin</h2>
+( -- f ) Initiate the Wire library and join the I2C bus as a master. This should normally be called only once.
+
+<h2>Wire.beginTransmission</h2>
+( n -- ) "Begin a transmission to the slave device at address n. Subsequently
+
+<h2>Wire.busy</h2>
+( -- f ) 
+
+<h2>Wire.endTransmission</h2>
+( sendstop -- f ) Ends a transmission to a slave device that was begun by Wire.beginTransmission and transmits the bytes that were queued by Wire.write Sends a stop message if sendstop=true
+
+<h2>Wire.flush</h2>
+( -- ) 
+
+<h2>Wire.getClock</h2>
+( -- frequency ) Read the clock frequency set by Wire.setClock
+
+<h2>Wire.getErrorText</h2>
+( n -- z ) 
+
+<h2>Wire.getTimeout</h2>
+( -- ms ) 
+
+<h2>Wire.lastError</h2>
+( -- n ) 
+
+<h2>Wire.peek</h2>
+( -- ch ) 
+
+<h2>Wire.read</h2>
+( -- ch ) Reads a byte that was transmitted from a slave device to a master after a call to Wire.requestFrom or was transmitted from a master to a slave
+
+<h2>Wire.readTransmission</h2>
+( addr a n sendstop acount -- err ) 
+
+<h2>Wire.requestFrom</h2>
+( address quantity sendstop -- n ) Used to request bytes from a slave device. The bytes may then be retrieved with the Wire.available and Wire.read functions. A stop message is sent after the reqyest if sendstop is true
+
+<h2>Wire.setClock</h2>
+( frequency -- ) "Modifies the clock frequency for I2C communication. I2C slave devices have no minimum working clock frequency
+
+<h2>Wire.setTimeout</h2>
+( ms -- ) Default is 50ms
+
+<h2>Wire.write</h2>
+( a n -- n ) "Writes data from a slave device in response to a request from a master
+
+<h2>Wire.writeTransmission</h2>
+( addr a n sendstop -- err ) 
+
+<h2>Vectored execution</h2>
+ 
+
+<h2>defer</h2>
+"( ""vectorname"" -- )" Define a deferred execution vector e.g. defer myemit
+
+<h2>is</h2>
+( -- ) Set the vector of a deferred word e.g. ' emit is myemit - sets the deferred word myemit to execute emit when called
+
+<h2>Vocabulary</h2>
+ 
+
+<h2>}transfer</h2>
+ transfer the words enclosed in curly brackets to the current library e.g. { word1 word2 word3 ... }transfer
+
+<h2>also</h2>
+( -- ) Duplicate the vocabulary at the top of the vocabulary stack
+
+<h2>context</h2>
+( -- a ) an area to specify vocabulary search order - defaults to forth
+
+<h2>definitions</h2>
+( -- ) Make the context vocabulary the current vocabulary
+
+<h2>forth</h2>
+( -- ) Make the forth vocabulary the current vocabulary
+
+<h2>internals</h2>
+ Make the internals vocabulary the current vocabulary
+
+<h2>interrupts</h2>
+ Make the interrupts vocabulary the current vocabulary
+
+<h2>ledc</h2>
+ Make the ledc vocabulary the current vocabulary
+
+<h2>registers</h2>
+( -- ) set the current vocabulary to registers
+
+<h2>rtos</h2>
+ Make the rtos vocabulary the current vocabulary
+
+<h2>SD_MMC</h2>
+ Make the SD_MMC vocabulary the current vocabulary
+
+<h2>sealed</h2>
+( -- ) Alter the last vocabulary defined so it doesn't chain
+
+<h2>Serial</h2>
+ Make the Serial vocabulary the current vocabulary
+
+<h2>sockets</h2>
+ Make the sockets vocabulary the current vocabulary
+
+<h2>SPIFFS</h2>
+ Make the SPIFFS vocabulary the current vocabulary
+
+<h2>streams</h2>
+( -- ) set the current vocabulary to streams
+
+<h2>tasks</h2>
+ make tasks vocabulary the current one  
+
+<h2>telnetd</h2>
+ Make the telnetdvocabulary the current vocabulary
+
+<h2>timers</h2>
+( --  ) Make the timers vocabulary the current vocabulary
+
+<h2>vocabulary</h2>
+"( ""name"" -- )" Create a vocabulary with the current vocabulary as parent
+
+<h2>web-interface</h2>
+ Make the web-interface vocabulary the current vocabulary
+
+<h2>WebServer</h2>
+ Make the WebServer vocabulary the current vocabulary
+
+<h1>forth</h1>
+<h2>WiFi</h2>
+ Make the WiFi vocabulary the current vocabulary
+
+<h2>Wire</h2>
+( -- ) Make the Wire vocabulary the current vocabulary
+
+<h2>previous</h2>
+( -- ) Drop the vocabulary at the top of the vocabulary stack
+
+<h1> </h1>
+<h2>OLED display</h2>
+ 
+
+<h2> OledInit</h2>
+(  --  ) initialize the display to accept commands
+
+<h2> OledDelete </h2>
+( n -- a ) 
+
+<h2> OledBegin </h2>
+( n -- a ) initialization
+
+<h2> OledHOME </h2>
+( n -- a ) send cursor to upper left home position
+
+<h2> OledCLS </h2>
+( n -- a ) clears the display
+
+<h2> OledTextc </h2>
+( n -- a ) 
+
+<h2> OledPrintln </h2>
+( n -- a ) print a zero= null terminated string from the stack 
+
+<h2> OledNumln </h2>
+( n -- a ) print + CR   a number on the stack (int)
+
+<h2> OledNum </h2>
+( n --  ) print a number on the stack (int)
+
+<h2> OledDisplay </h2>
+(  --  ) show the buffer on the OLED display
+
+<h2> OO = Oleddisplay</h2>
+( n -- a ) is an abbreviation of Oleddisplay
+
+<h2> OledPrint </h2>
+"( z""  ""  addr --  )" print a zero= null terminated string from the stack 
+
+<h2> OledInvert </h2>
+(  --  ) invert the background & foreground colors
+
+<h2> OledTextsize </h2>
+( n --  ) 
+
+<h2> OledSetCursor </h2>
+( n --  ) 
+
+<h2> OledPixel </h2>
+( x y C --  ) "draw a pixel    x y coordinates  C= Color 
+
+<h2> OledDrawL </h2>
+( x y x2 y2 1  --  ) "draw a line  x y x2 y2 coordinates  C= Color 
+
+<h2> OledCirc </h2>
+( x y r 1  --  ) draw a circle
+
+<h2> OledCircF </h2>
+( x y r 1  --  ) draw a circle filled
+
+<h2> OledRect </h2>
+( x y x2 y2 1  --  ) draw a rectangle
+
+<h2> OledRectF </h2>
+( x y x2 y2 1  --  ) draw a rectangle filled
+
+<h2> OledRectR </h2>
+( x y x2 y2 1  --  ) draw a rectangle rounded edges
+
+<h2> OledRectRF </h2>
+( n -- a ) draw a rectangle rounded edges filled
+
+<h2> OledAddr </h2>
+( n -- a ) address of I2C device
+
+<h2> OledNew </h2>
+( n -- a ) 
+
+<h2>Web Interface</h2>
+ 
+
+<h2>do-serve</h2>
+ 
+
+<h2>handle-index</h2>
+ 
+
+<h2>handle-input</h2>
+ 
+
+<h2>handle1</h2>
+ 
+
+<h2>index-html</h2>
+ 
+
+<h2>input-stream</h2>
+ 
+
+<h2>out-size</h2>
+ 
+
+<h2>out-string</h2>
+ 
+
+<h2>output-stream</h2>
+ 
+
+<h2>serve-key</h2>
+ 
+
+<h2>serve-type</h2>
+ 
+
+<h2>webserver</h2>
+ 
+
+<h2>webserver-task</h2>
+ 
+
+<h2>Web Server</h2>
+ 
+
+<h2>WebServer.arg</h2>
+( z ws -- z ) By name
+
+<h2>WebServer.argi</h2>
+( n ws -- z ) By index
+
+<h2>WebServer.argName</h2>
+( n ws -- z) By index
+
+<h2>WebServer.args</h2>
+By index Number of args
+
+<h2>WebServer.begin</h2>
+( port ws -- ) 
+
+<h2>WebServer.delete</h2>
+( ws -- ) Delete webserver object
+
+<h2>WebServer.handleClient</h2>
+( ws -- ) Handle one client request
+
+<h2>WebServer.hasArg</h2>
+( z ws -- f ) By name
+
+<h2>WebServer.method</h2>
+( ws -- n ) GET / POST etc.
+
+<h2>WebServer.new</h2>
+( port -- ws ) Allocate new webserver object
+
+<h2>WebServer.on</h2>
+( path-z xt ws -- ) Set up a web path handle callback
+
+<h2>WebServer.send</h2>
+( code mimetype data ws -- ) 
+
+<h2>WebServer.sendContent</h2>
+( z ws -- ) 
+
+<h2>WebServer.sendHeader</h2>
+( name-z value-z fist ws -- ) 
+
+<h2>WebServer.setContentLength</h2>
+( n ws -- ) 
+
+<h2>WebServer.stop</h2>
+( ws -- ) 
+
+<h2>WiFi</h2>
+ 
+
+<h2>login</h2>
+( network-z password-z -- ) "login to wifi only e.g. z"" NETWORK-NAME"" z"" PASSWORD""  login"
+
+<h2>WIFI_MODE_AP</h2>
+( -- 2 ) access point mode: stations can connect to the ESP32 e.g. WIFI_MODE_AP WiFi.mode
+
+<h2>WIFI_MODE_APSTA</h2>
+( -- 3 ) access point and a station connected to another access point e.g. WIFI_MODE_APSTA WiFi.mode
+
+<h2>WIFI_MODE_NULL</h2>
+( -- 0 ) 
+
+<h2>WIFI_MODE_STA</h2>
+( -- 1 ) station mode: the ESP32 connects to an access point e.g WIFI_MODE_STA WiFi.mode
+
+<h2>WiFi.begin</h2>
+( ssid-z password-z -- ) "Initializes the WiFi library's network settings and provides the current status. e.g. z"" mySSID"" z"" myPASSWORD"" WiFi.begin -- see connection-disconnection demo below"
+
+<h2>WiFi.config</h2>
+( ip dns gateway subnet -- ) "Allows you to configure a static IP address as well as change the DNS
+
+<h2>WiFi.disconnect</h2>
+( -- ) Disconnects the WiFi shield from the current network
+
+<h2>WiFi.getTxPower</h2>
+( -- powerx4 ) Get power x4
+
+<h2>WiFi.localIP</h2>
+( -- ip ) Get local IP
+
+<h2>WiFi.macAddress</h2>
+( a -- ) Gets the MAC Address of your ESP32 WiFi port
+
+<h2>WiFi.mode</h2>
+( mode -- ) Set WiFi mode - see notes below
+
+<h2>WiFi.setTxPower</h2>
+( powerx4 -- ) Set power x4
+
+<h2>WiFi.status</h2>
+( -- n ) Returns the connection status - see notes below
+
+<h2>Word definitions</h2>
+ 
+
+<h2>"</h2>
+" ( n -- )
+
+<h2>;</h2>
+(  -- ) "stop compiler
+
+<h2>:</h2>
+"( ""wordname"" --  )" "start compiler mode
+
+<h2>:noname</h2>
+( – xt ) "Create a word with no name
+
+<h2>'</h2>
+"( ""wordname"" -- xt )" "xt = execution token of the word that follows in the input stream e.g. ' words puts 1073654684 on the stack. Errors if word not found
+
+<h2>[</h2>
+( -- ) stop compiling the input stream and start executing - sets state=true
+
+<h2>[']</h2>
+( -- xt ) xt = execution of the word that follows inside a : definition e.g. : COMING   ['] HELLO   'aloha ! ;
+
+<h2>]</h2>
+( -- ) "Stop executing and start compiling the input stream
+
+<h2>{</h2>
+( -- ) Mark the start of a local variable block - see example below
+
+<h2>align</h2>
+ 
+
+<h2>aligned</h2>
+( addr1 -- addr2 ) "converts an address on the stack to the next higher cell boundary
+
+<h2>allot</h2>
+B286 "see ""allocate""   B286"
+
+<h2>"c</h2>
+" ( c -- )
+
+<h2>constant</h2>
+"( n ""name"" -- )" "create a constant whose name follws in the input stream
+
+<h2>CREATE</h2>
+( -- ; -- pfa ) "create an empty dictionary entry <name>
+
+<h1>forth</h1>
+<h2>IMMEDIATE</h2>
+ Marks the last defined word as immediate - it will execute immediately if called whilst compiling a word
+
+<h2>literal</h2>
+( n -- ; -- n ) "add top of stack into the word being compiled at the next free memory location. When the word is run
+
+<h2>postpone</h2>
+"( ""text"" -- )" Skip leading space delimiters. Parse name delimited by a space. Find name. Append the compilation semantics of name to the current definition. Useful when an immediate word needs to be compiled in a word definition instead of immediately executing
+
+<h1>forth</h1>
+<h2>SMUDGE</h2>
+( -- ) stops the current word being defined being found during a dictionary lookup
+
+<h2>value</h2>
+"( n ""valname"" -- ; -- n )" "creates a value
+
+<h2>variable</h2>
+"( ""varname"" -- ; -- addr  )" variable takes the next word in the input stream as the name and reserves space  for a variable
+
+<h2>Orphan words - yet to be allocated</h2>
+ 
+
+<h2>MDNS.begin</h2>
+( name-z -- ) Start multicast dns
+
+<h2>refill</h2>
+ 
+
+<h2>vTaskDelete</h2>
+( task -- ) 
+
+<h2>xPortGetCoreID</h2>
+( -- n ) 
+
+<h2>xTaskCreatePinnedToCore</h2>
+( fn name stack-depth params priority taskout coreid -- ) 
+
+<h2>FLOATING POINT WORDS --(Requires v7.0.6.5+) </h2>
+ 
+
+<h1>Single precision floating-point support is available as a work in progress. </h1>
+<h1>Floating point is kept on a separate stack.</h1>
+<h1>NOTE: Tasks currently don't correctly support floating point. A single floating point stack is shared by all tasks.</h1>
+<h1>FP@ ( -- a )</h1>
+<h1>FP! ( a -- )</h1>
+<h1>FDUP ( r -- r r )</h1>
+<h1>FNIP ( ra rb -- rb )</h1>
+<h1>FDROP ( r -- )</h1>
+<h1>FOVER ( ra rb -- ra rb ra )</h1>
+<h1>FSWAP ( ra rb -- rb ra )</h1>
+<h1>F0< ( r -- f )</h1>
+<h1>F0= ( r -- f )</h1>
+<h1>F+ ( r r -- r )</h1>
+<h1>F- ( r r -- r )</h1>
+<h1>F* ( r r -- r )</h1>
+<h1>F/ ( r r -- r )</h1>
+<h1>1/F ( r -- r )</h1>
+<h1>S>F ( n -- r )</h1>
+<h1>F>S ( r -- n )</h1>
+<h1>HIGH LEVEL</h1>
+<h1>----------</h1>
+<h1>F= ( r r -- f )</h1>
+<h1>F< ( r r -- f )</h1>
+<h1>F> ( r r -- f )</h1>
+<h1>F<= ( r r -- f )</h1>
+<h1>F>= ( r r -- f )</h1>
+<h1>F<> ( r r -- f )</h1>
+<h1>SFLOAT ( -- 4 )</h1>
+<h1>SFLOATS ( n -- n*4 )</h1>
+<h1>SFLOAT+ ( a -- a+4 )</h1>
+<h1>AFLITERAL ( r -- )</h1>
+<h1>FLITERAL ( r -- ) IMMEDIATE</h1>
+<h1>"FCONSTANT ( r ""name"" )"</h1>
+<h1>"FVARIABLE ( ""name"" )"</h1>
+<h1>PI ( -- r )</h1>
+<h1>FSQRT ( r r -- r )</h1>
+<h2>F.  </h2>
+( n-- ) "Display
+
+<h2>Serial Bluetooth WORDS --(Requires v7.0.6.5+) </h2>
+ 
+
+<h1>Bluetooth</h1>
+<h1>These words are inside the bluetooth vocabulary.</h1>
+<h1>esp_bt_dev_get_address ( -- a ) addr of 6 byte mac address</h1>
+<h1>Serial Bluetooth</h1>
+<h1>These words are inside the bluetooth vocabulary.</h1>
+<h1>SerialBT.new ( -- bt )   Allocate new BT object</h1>
+<h1>SerialBT.delete ( bt -- )   Free BT object</h1>
+<h1>SerialBT.begin ( localname ismaster bt -- f )</h1>
+<h1>SerialBT.end ( bt -- )</h1>
+<h1>SerialBT.available ( bt -- f )</h1>
+<h1>SerialBT.readBytes ( a n bt -- n )</h1>
+<h1>SerialBT.write ( a n bt -- n )</h1>
+<h1>SerialBT.flush ( bt -- )</h1>
+<h1>SerialBT.hasClient ( bt -- f )</h1>
+<h1>SerialBT.enableSSP ( bt -- )</h1>
+<h1>SerialBT.setPin ( z bt -- f )</h1>
+<h1>SerialBT.unpairDevice ( addr bt -- f )</h1>
+<h1>SerialBT.connect ( remotename bt -- f )</h1>
+<h1>SerialBT.connectAddr ( addr bt -- f )</h1>
+<h1>SerialBT.disconnect ( bt -- f )</h1>
+<h1>SerialBT.connected ( timeout bt -- f )</h1>
+<h2>Camera WORDS --(Requires v7.0.6.5+) </h2>
+ 
+
+<h1>Camera</h1>
+<h1>These words are inside the camera vocabulary.</h1>
+<h1>esp_camera_init ( config -- f )</h1>
+<h1>esp_camera_deinit ( -- f )</h1>
+<h1>esp_camera_fb_get ( -- fb )</h1>
+<h1>esp_camera_fb_return ( fb -- )</h1>
+<h1>esp_camera_sensor_get ( -- sensor )</h1>
+<h2>Camera Server WORDS --(Requires v7.0.6.5+) </

@@ -34,8 +34,8 @@ import javax.swing.tree.TreePath;
  */
 public class PanelWords extends JPanel {
 
-    private JPanel _panel = new JPanel();
-    private HashSet<String> _wordSet = new HashSet<>();
+    private final JPanel _panel = new JPanel();
+    private final HashSet<String> _wordSet = new HashSet<>();
     private JScrollPane _scrollPane;
     String[] numbers = {"One", "Two", "Three", "Four", "Five"};
     private JTree _wordsTree;
