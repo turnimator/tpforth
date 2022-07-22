@@ -4,7 +4,6 @@
  */
 package com.turnimator.fide.view;
 
-import java.lang.System;
 import com.turnimator.fide.events.WordClickEvent;
 import java.awt.BorderLayout;
 import java.awt.Dimension;

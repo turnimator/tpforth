@@ -132,8 +132,11 @@ public class FrameMain extends JFrame {
         if (id == null){
             throw new NullPointerException("id can't be null!");
         }
-        if (!id.equals(_currentEditorPanel.getConnectionId())) {
+        if (_currentEditorPanel == null || !id.equals(_currentEditorPanel.getConnectionId())) {
             _currentEditorPanel = _editorPanelMap.get(id);
+        }
+        if (_currentEditorPanel == null){
+            throw new NullPointerException("id=" + id + " retrieved a NULL entry from _editorPanelMap!");
         }
         return _currentEditorPanel;
     }
@@ -466,8 +469,10 @@ public class FrameMain extends JFrame {
      * Set Current editor to id and select corresponding tab
      *
      * @param id
+     * @param t
      */
     public void addEditorTab(String id, ConnectionType t) {
+        Logger.getAnonymousLogger().log(Level.INFO, "Creating tab for " + id);
         if (id == null) {
             throw new NullPointerException("ConnectionId is null");
         }
@@ -475,7 +480,8 @@ public class FrameMain extends JFrame {
         _currentEditorPanel = new PanelEditor(id, t);
         //_currentEditorPanel.setSize(new Dimension(600, 400));
         _editorPanelMap.put(id, _currentEditorPanel);
-        _tabbedEditorPane.addTab(id.toString(), _currentEditorPanel);
+        
+        _tabbedEditorPane.addTab(id, _currentEditorPanel);
         _currentEditorPanel.addTransmitEventHandler(new TransmitEvent() {
             @Override
             public void transmit(String id, String text) {
@@ -529,7 +535,6 @@ public class FrameMain extends JFrame {
         ensurePanelEditor(id);
         switch (_responseOutputType) {
             case Editor:
-                ensurePanelEditor(id);
                 _currentEditorPanel.appendOutputText(text);
                 break;
             case Words:

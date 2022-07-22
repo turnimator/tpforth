@@ -150,6 +150,7 @@ public class PanelEditor extends JPanel {
     }
 
     public void appendOutputText(String text) {
+        if (text == null) return;
         String text1 = _editorPane.getText();
         _editorPane.setText(text1 + "\n" + text);
         _editorPane.setCaretPosition(text1.length() + text.length());
