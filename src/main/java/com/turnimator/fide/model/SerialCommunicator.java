@@ -100,6 +100,8 @@ public class SerialCommunicator implements CommunicatorInterface {
                         continue;
                     }
                     if (s != null && s.length() > 0) {
+                        
+                        Logger.getAnonymousLogger().log(Level.INFO, "RX:"+s);
                         for (ReceiveEvent evt : recvList) {
                             evt.receive(_id, s);
                         }
@@ -119,7 +121,7 @@ public class SerialCommunicator implements CommunicatorInterface {
     }
 
     public boolean send(String s) {
-        // Logger.getAnonymousLogger().log(Level.INFO, "Serial " + _port + " Sending " + s);
+        Logger.getAnonymousLogger().log(Level.INFO, "PORT:" + _port + "TX:" + s);
         if (commPort == null) {
             errorText = "Must connect to port first!";
             Logger.getAnonymousLogger().log(Level.SEVERE, errorText);
