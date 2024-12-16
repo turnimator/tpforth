@@ -80,4 +80,9 @@ myq " 192.168.7.101/5000" 128 NQCREATE ! \ Note the IP address!
  " t1" wr \ will execute the word t1 on the other machine
  
  ----------------
+ There is a video that shows how to run it: https://youtu.be/h8_L-AM4Csc
+ A video about queue communication: https://youtu.be/tZkXTb1oX0U
+ A video about creating tasks: https://youtu.be/GFkKPTmdbuM
+ 
+ 
  
