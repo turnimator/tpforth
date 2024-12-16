@@ -1,4 +1,7 @@
 TP-FORTH is just an experiment, but I've decided to develop it as much as I can.
+Updates will be Forth-coming every week, so watch this space if you're insterested.
+TP-Forth is easy to hack--if you want to add something please tell me.
+
 One day, it could become a full Forth.
 
 Explanation of the program remote_exec.fs:
