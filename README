@@ -27,7 +27,11 @@ SEXEC ( S -- ) takes a string S and executes it as a word (for now, this only wo
 
 @ ( X -- C ) takes a variable X and places the contents C on the stack
 
- S. ( S ) prints a string S. You can also use the more familiar TYPE.
+ S. ( S -- ) prints a string S. You can also use the more familiar TYPE.
+ 
+ SPAWN ( XT -- ) Runs the XT as a background task
+ 
+ ' ( W -- XT ) Takes a word W and leaves an XT on the sttack
  
 The program
 ------------
@@ -41,6 +45,7 @@ myq " 192.168.7.100/5000" 128 NQCREATE !
 : t4 " This is t4" S. CR ;
 : t5 " This is t5" S. CR ;
 
+' rd SPAWN
 
 Create a variable called myq
 VARIABLE myq
@@ -64,6 +69,8 @@ Do 100 reads
 : t4 " This is t4" S. CR ;
 : t5 " This is t5" S. CR ;
 
+' rd SPAWN - Run rd in the background: Place the word rd's XT on the stack and run it as a background task
+ 
 To test the program, you need two instances of TP-Forth running on two different machines.
 
 On one machine with example address 192.168.7.101, you run remote_exec.fs. 
