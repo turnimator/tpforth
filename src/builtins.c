@@ -383,7 +383,19 @@ static void d_ms(ftask_p task) {
   long millis = d_pop(task);
   usleep(millis);
 }
+
 /////////////////////////////////////////////////////////
+static int dict_words_cb(dict_entry_p de, void *p) {
+  printf(" %s", de->name);
+  return 0;
+}
+
+static void f_words(ftask_p task) {
+  for (int i = 0; i < N_builtins; i++) {
+    printf(" %s", DB_builtins[i]->name);
+  }
+  dict_loop(0, dict_words_cb, 0);
+}
 
 //////// --------- DATA STACK MANIPULATION ---------------- /////////////////
 void d_dup(ftask_p task) {
@@ -656,6 +668,7 @@ void builtin_build_db() {
   builtin_add("DROP", d_drop);
   builtin_add("2DROP", d_drop2);
   builtin_add("PICK", f_pick);
+  builtin_add("WORDS", f_words);
   builtin_add("+", d_plus);
   builtin_add("-", d_minus);
   builtin_add(".", d_dot);
