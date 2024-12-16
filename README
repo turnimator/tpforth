@@ -1,33 +1,73 @@
-TP-FORTH is just an experiment
+TP-FORTH is just an experiment, but I've decided to develop it as much as I can.
+One day, it could become a full Forth.
 
-It can tell you whether of not a number is a Prime:
+Explanation of the program remote_exec.fs:
+------------------------------------------
 
-VARIABLE NUM
-: isPrime
-	NUM SWAP ! 
-	NUM @ 1 - 2 DO 
-	NUM @ I MOD 0 = IF 0 EXIT THEN
-	LOOP
-	1
-	;
+Words used:
+-----------
+TP-Forth is case sensitive. All built-in words must be in UPPER CASE.
+
+VARIABLE(X) creates a variable with the name X
+
+! ( X V -- ) Stores the value V in the variable X
  
-However, it's full of bugs, and not usable as a Forth yet.
-I've only put it up here for people to examine the design
-That said, it's now a decent HP-like calculator
+NQCREATE(s n--a) 
+- takes a string on the form "IP_address/port",
+- an integer specifying the queues length (how many bytes you can write to it before it blocks),
+- creates a network queue, 
+- and stores its reference on the stack.
 
-: line 79 0 DO
- I .
- LOOP 
- ;
+SEXEC ( S -- ) takes a string S and executes it as a word (for now, this only works with dictionary words) 
+
+<NQ ( Q -- S ) receives data coming in on the queue Q and places it on the stack as a string S
+
+@ ( X -- C ) takes a variable X and places the contents C on the stack
+
+ S. ( S ) prints a string S. You can also use the more familiar TYPE.
  
- : page 24 0 DO
-   line CR
-   LOOP
-   ;
-  : pages 0 DO
-   I . CR
-   page
-   LOOP
-   ;
-   
-     
+The program
+------------
+VARIABLE myq
+myq " 192.168.7.100/5000" 128 NQCREATE !
+: rd myq @ <NQ SEXEC ; 
+: rl 100 0 DO rd CR LOOP ;
+: t1 " This is t1" S. CR ;
+: t2 " This is t2" S. CR ;
+: t3 " This is t3" S. CR ;
+: t4 " This is t4" S. CR ;
+: t5 " This is t5" S. CR ;
+
+
+Create a variable called myq
+VARIABLE myq
+
+Create a queue to communicate with the TP-Forth running on machine with ip 192.168.7.100, port 500 and store it in myq.
++Place myyq on the stack
+|  + Create the queue, placing its reference on the stack
+|  |                                  + Store the reference in the queue
++--+----------------------------------+---
+myq " 192.168.7.100/5000" 128 NQCREATE !
+
+Define a word that will read data from myq and execute them
+: rd myq @ <NQ SEXEC ; 
+
+Do 100 reads
+: rl 100 0 DO rd CR LOOP ;
+
+: t1 " This is t1" S. CR ;
+: t2 " This is t2" S. CR ;
+: t3 " This is t3" S. CR ;
+: t4 " This is t4" S. CR ;
+: t5 " This is t5" S. CR ;
+
+To test the program, you need two instances of TP-Forth running on two different machines.
+
+On one machine with example address 192.168.7.101, you run remote_exec.fs. 
+On the other, with example address 192.168.7.100, you run a program like this:
+myq " 192.168.7.101/5000" 128 NQCREATE ! \ Note the IP address!
+ : wr myq @ SWAP NQ> ; \ Create a word that will write a string to myq.
+ " t1" wr \ will execute the word t1 on the other machine
+ 
+ ----------------
+ 
