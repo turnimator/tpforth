@@ -385,6 +385,79 @@ static void d_ms(ftask_p task) {
 }
 
 /////////////////////////////////////////////////////////
+
+static void f_see(ftask_p task) {
+  char *wname = (char *)d_pop(task);
+  dict_entry_p de = dict_lookup(0, wname);
+  if (de) {
+    printf(" : %s ", de->prog->name);
+    for (int i = 0; i < de->prog->npcp_array; i++) {
+      smtok_p pcp = de->prog->pcp_array[i];
+      switch (pcp->jtidx) {
+      case SMTOK_NUMBER:
+        printf("%ld ", pcp->val.l);
+        break;
+      case SMTOK_BUILTIN:
+        printf("%s ", pcp->name);
+        break;
+      case SMTOK_VARIABLE:
+        var_p v = variable_get(pcp->val.var_idx);
+        printf("%s ", pcp->name);
+        break;
+      case SMTOK_DICT_ENTRY:
+        printf(" %s ", pcp->name);
+        break;
+      case SMTOK_IF:
+        printf("IF:%ld ", pcp->val.l);
+        return;
+      case SMTOK_ELSE:
+        printf("ELSE:%ld ", pcp->val.l);
+        break;
+      case SMTOK_THEN:
+        printf("THEN:%ld ", pcp->val.l);
+        return;
+      case SMTOK_LOOP_DO:
+        printf("DO:%ld ", pcp->val.l);
+        break;
+      case SMTOK_LOOP_END:
+        printf("LOOP:%ld ", pcp->val.l);
+        break;
+      case SMTOK_I:
+        printf("I ");
+        break;
+      case SMTOK_EXIT:
+        printf("EXIT ");
+        break;
+      case SMTOK_LAST:
+        printf("END ");
+        break;
+      case SMTOK_DEFER:
+        printf("' ");
+        break;
+      case SMTOK_EXEC:
+        printf("EXEC ");
+        break;
+      case SMTOK_SPAWN:
+        printf("SPAWN ");
+        break;
+      case SMTOK_STRING:
+        printf("\"%s\" ", pcp->val.s);
+        break;
+      default:
+        printf("  ? ");
+        break;
+      }
+    }
+    printf(" ; \n");
+    return;
+  }
+  idx_builtin_p ibp = builtin_lookup(wname);
+  if (ibp) {
+    builtin_p bp = DB_builtins[ibp->op];
+    printf(" %s %p ", ibp->name, bp->code);
+  }
+}
+
 static int dict_words_cb(dict_entry_p de, void *p) {
   printf(" %s", de->name);
   return 0;
@@ -669,6 +742,7 @@ void builtin_build_db() {
   builtin_add("2DROP", d_drop2);
   builtin_add("PICK", f_pick);
   builtin_add("WORDS", f_words);
+  builtin_add("SEE", f_see);
   builtin_add("+", d_plus);
   builtin_add("-", d_minus);
   builtin_add(".", d_dot);

@@ -4,6 +4,23 @@ TP-Forth is easy to hack--if you want to add something please tell me.
 
 One day, it could become a full Forth.
 
+Quirks that may or mayy not be fixed in the near future:
+To print a string, you have to do this
+
+" This is the string I want to print" S.  
+
+Alternatively
+" This is the string I want to print" TYPE
+
+Strings a C-strings
+
+To SEE a word, you have to 
+
+" X" SEE \ where X is the word you want to SEE.
+
+
+
+
 Explanation of the program remote_exec.fs:
 ------------------------------------------
 
