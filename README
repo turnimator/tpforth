@@ -7,7 +7,7 @@ One day, it could become a full Forth.
 Quirks that may or mayy not be fixed in the near future:
 To print a string, you have to do this
 
-" This is the string I want to print" S.  
+" This is the string I want tc o print" S.  
 
 Alternatively
 " This is the string I want to print" TYPE

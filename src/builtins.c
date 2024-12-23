@@ -470,6 +470,30 @@ static void f_words(ftask_p task) {
   dict_loop(0, dict_words_cb, 0);
 }
 
+static void f_system(ftask_p task) {
+  char *s = (char *)d_pop(task);
+  system(s);
+}
+
+static void f_edit(ftask_p task) {
+  char *editor = "vi";
+  int esl = 3; // string length of editor name
+  char *filename = (char *)d_pop(task);
+  if (filename == 0 || strlen(filename) < 3) { // Check for no parameter
+    filename = " startup.fs";
+  }
+  int fsl = strlen(filename); // file name length
+  int buflen = fsl + esl + 2;
+  char *sysbuffer = malloc(buflen);
+
+  strcpy(sysbuffer, editor);
+  strcat(sysbuffer, " ");
+  strcat(sysbuffer, filename);
+  system(sysbuffer);
+  free(sysbuffer);
+}
+
+/////////////////////////////////////////////////////////////////////////////
 //////// --------- DATA STACK MANIPULATION ---------------- /////////////////
 void d_dup(ftask_p task) {
   task->d_stack[task->d_top] = task->d_stack[task->d_top - 1];
@@ -770,6 +794,8 @@ void builtin_build_db() {
   builtin_add("EXIT", f_exit);
   builtin_add("DICT", f_dict_dump);
   builtin_add("SEXEC", d_string_exec);
+  builtin_add("SYSTEM", f_system);
+  builtin_add("EDIT", f_edit);
   builtin_add("VARS", v_dump);
   builtin_add(">r", d_r);
   builtin_add("r>", r_d);
