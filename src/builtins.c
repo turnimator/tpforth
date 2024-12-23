@@ -10,6 +10,7 @@
 #include "custom.h"
 #include "dictionary.h"
 #include "n_queue.h"
+#include "parser.h"
 #include "program.h"
 #include "runtime.h"
 #include "smtok.h"
@@ -20,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 builtin_p *DB_builtins;
@@ -493,6 +495,33 @@ static void f_edit(ftask_p task) {
   free(sysbuffer);
 }
 
+char *readfile(char *filename) {
+  char *rv;
+  struct stat stbuf;
+  FILE *f = fopen(filename, "r");
+  if (!f) {
+    perror("startup.fs");
+    return 0;
+  }
+
+  fstat(fileno(f), &stbuf);
+  rv = malloc(stbuf.st_blksize * stbuf.st_blocks);
+  fread(rv, stbuf.st_blksize, stbuf.st_blocks, f);
+
+  fclose(f);
+  return rv;
+}
+
+static void f_load(ftask_p task) {
+  char *filename = (char *)d_pop(task);
+  char *src = readfile(filename);
+  if (src) {
+    puts(src);
+    parse(task, src);
+    run_task(task);
+    // free(src);
+  }
+}
 /////////////////////////////////////////////////////////////////////////////
 //////// --------- DATA STACK MANIPULATION ---------------- /////////////////
 void d_dup(ftask_p task) {
@@ -796,6 +825,7 @@ void builtin_build_db() {
   builtin_add("SEXEC", d_string_exec);
   builtin_add("SYSTEM", f_system);
   builtin_add("EDIT", f_edit);
+  builtin_add("LOAD", f_load);
   builtin_add("VARS", v_dump);
   builtin_add(">r", d_r);
   builtin_add("r>", r_d);

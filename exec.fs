@@ -1,5 +1,5 @@
 : tst 1 . 2 . 3 . ;
-DEFER tst
+' tst
 SPAWN
 4 .
 5 .

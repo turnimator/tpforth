@@ -16,23 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-
-char *read_file(char *filename) {
-  char *rv;
-  struct stat stbuf;
-  FILE *f = fopen(filename, "r");
-  if (!f) {
-    perror("startup.fs");
-    return 0;
-  }
-
-  fstat(fileno(f), &stbuf);
-  rv = malloc(stbuf.st_blksize * stbuf.st_blocks);
-  fread(rv, stbuf.st_blksize, stbuf.st_blocks, f);
-
-  fclose(f);
-  return rv;
-}
+extern char *readfile(char *);
 
 void banner() {
   puts("     +----------------------------------------------------+");
@@ -53,7 +37,8 @@ int main(int ac, char *av[]) {
   if (ac > 1) {
     filename = av[1];
   }
-  char *src = read_file(filename);
+
+  char *src = readfile(filename);
   if (src) {
     puts(src);
     parse(t, src);
