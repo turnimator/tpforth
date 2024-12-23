@@ -18,6 +18,14 @@ To SEE a word, you have to
 
 " X" SEE \ where X is the word you want to SEE.
 
+To load a program: LOAD ( s -- )
+Example: " exec.fs" LOAD will load and execute the program stored in exec.fs
+
+To edit a program: EDIT ( s -- )
+Example: " exec.fs" EDIT
+
+To run a Linux command like: SYYSTEM (s -- )
+Example: " ls" SYSTEM will run the OS command "ls".
 
 
 
