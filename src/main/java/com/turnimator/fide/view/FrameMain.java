@@ -81,31 +81,37 @@ public class FrameMain extends JFrame {
     private final ArrayList<RescanEvent> _rescanHandlerList = new ArrayList<>();
 
     private final ArrayList<WordClickEvent> _wordClickHandlerList = new ArrayList<>();
-    public void addWordClickEventHandler(WordClickEvent ev){
+
+    public void addWordClickEventHandler(WordClickEvent ev) {
         _wordClickHandlerList.add(ev);
     }
-    private void bubbleWordClickEvent(String word){
-        for(WordClickEvent ev:_wordClickHandlerList){
+
+    private void bubbleWordClickEvent(String word) {
+        for (WordClickEvent ev : _wordClickHandlerList) {
             ev.wordClicked(word);
         }
     }
-    
+
     private final ArrayList<WordsRequestEvent> _wordsRequestHandlerList = new ArrayList<>();
+
     public void addWordsRequestHandler(WordsRequestEvent ev) {
         _wordsRequestHandlerList.add(ev);
     }
+
     private void bubbleWordsRequest(String id) {
         for (WordsRequestEvent ev : _wordsRequestHandlerList) {
             ev.requestWords(id);
         }
     }
-    
+
     private final ArrayList<ExampleRequestEvent> _exampleRequestHandlerList = new ArrayList<>();
-    public void addExampleRequestEventHandler(ExampleRequestEvent ev){
+
+    public void addExampleRequestEventHandler(ExampleRequestEvent ev) {
         _exampleRequestHandlerList.add(ev);
     }
-    private void bubbleExampleRequest(String word){
-        for(ExampleRequestEvent ev:_exampleRequestHandlerList){
+
+    private void bubbleExampleRequest(String word) {
+        for (ExampleRequestEvent ev : _exampleRequestHandlerList) {
             ev.requestExample(word);
         }
     }
@@ -129,13 +135,13 @@ public class FrameMain extends JFrame {
     private PanelWords _panelWords;
 
     private PanelEditor ensurePanelEditor(String id) {
-        if (id == null){
+        if (id == null) {
             throw new NullPointerException("id can't be null!");
         }
         if (_currentEditorPanel == null || !id.equals(_currentEditorPanel.getConnectionId())) {
             _currentEditorPanel = _editorPanelMap.get(id);
         }
-        if (_currentEditorPanel == null){
+        if (_currentEditorPanel == null) {
             throw new NullPointerException("id=" + id + " retrieved a NULL entry from _editorPanelMap!");
         }
         return _currentEditorPanel;
@@ -169,7 +175,7 @@ public class FrameMain extends JFrame {
                 }
             }
         });
-        
+
         _panelConnections.addRescanHandler(new RescanEvent() {
             @Override
             public void rescan(String host) {
@@ -292,7 +298,7 @@ public class FrameMain extends JFrame {
         if (exec_path.endsWith(".jar")) {
             exec_path = new File(exec_path).getParent();
         }
-       // System.setProperty("fide.execPath", exec_path);
+        // System.setProperty("fide.execPath", exec_path);
 
         System.out.println("Exec_path: " + exec_path);
 
@@ -309,6 +315,7 @@ public class FrameMain extends JFrame {
         buttonConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                System.out.println("CONNECTIONS");
                 for (ConnectionsDisplayEvent ev : _connectionDisplayHandlerList) {
                     ev.setVisible(!_panelConnections.isVisible());
                 }
@@ -322,6 +329,7 @@ public class FrameMain extends JFrame {
         buttonUpload.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                System.out.println("UPLOAD");
                 if (_currentEditorPanel == null) {
                     return;
                 }
@@ -341,6 +349,7 @@ public class FrameMain extends JFrame {
         buttonWords.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                System.out.println("WORDS");
                 bubbleWordsRequest(_currentEditorPanel.getConnectionId());
             }
         });
@@ -395,7 +404,7 @@ public class FrameMain extends JFrame {
         _mainPanelRight.add(_panelWords);
 
         _statusPanel.setLayout(new FlowLayout());
-        
+
         _statusLabel.setAlignmentX(LEFT_ALIGNMENT);
         _statusPanel.add(_statusLabel);
         _statusPanel.add(_statusProgressBar);
@@ -480,7 +489,7 @@ public class FrameMain extends JFrame {
         _currentEditorPanel = new PanelEditor(id, t);
         //_currentEditorPanel.setSize(new Dimension(600, 400));
         _editorPanelMap.put(id, _currentEditorPanel);
-        
+
         _tabbedEditorPane.addTab(id, _currentEditorPanel);
         _currentEditorPanel.addTransmitEventHandler(new TransmitEvent() {
             @Override
@@ -585,5 +594,13 @@ public class FrameMain extends JFrame {
 
     public ConnectionType getConnectionType() {
         return _currentEditorPanel.getConnectionType();
+    }
+
+    public boolean isCommpanelVisible() {
+        return _panelConnections.isVisible();
+    }
+
+    public void setCommpanelVisible(boolean b) {
+        _panelConnections.setVisible(b);
     }
 }

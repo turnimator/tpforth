@@ -4,7 +4,6 @@
  */
 package com.turnimator.fide.view;
 
-import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.RescanEvent;
 import com.turnimator.fide.events.SerialConnectionRequestEvent;
 import com.turnimator.fide.events.DisconnectEvent;
@@ -26,7 +25,7 @@ public class PanelSerialConnection extends Panel {
     private final ArrayList<SerialConnectionRequestEvent> serialConnectHandlerList = new ArrayList<>();
     private final ArrayList<DisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
     private final ArrayList<RescanEvent> rescanHandlerList = new ArrayList<>();
-    
+
     private final JComboBox<String> _commList = new JComboBox<>();
     private JComboBox<String> jComboBoxBitRate;
     private JButton _buttonConnect;
@@ -51,7 +50,7 @@ public class PanelSerialConnection extends Panel {
             }
         });
         _buttonConnect.setEnabled(false);
-        
+
         _commList.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -67,18 +66,18 @@ public class PanelSerialConnection extends Panel {
         _disconnectButton.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for(DisconnectEvent ev: serialDisconnectHandlerList){
+                for (DisconnectEvent ev : serialDisconnectHandlerList) {
                     ev.disconnect((String) _commList.getSelectedItem());
                 }
             }
         });
         _disconnectButton.setEnabled(false);
-        
+
         jButtonRescan = new JButton("Rescan");
         jButtonRescan.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (RescanEvent ev:rescanHandlerList){
+                for (RescanEvent ev : rescanHandlerList) {
                     ev.rescan("");
                 }
             }
@@ -90,13 +89,13 @@ public class PanelSerialConnection extends Panel {
         add(jButtonRescan);
         add(_buttonConnect);
         add(_disconnectButton);
-        
+
     }
 
-    public void addRescanEventHandler(RescanEvent ev){
+    public void addRescanEventHandler(RescanEvent ev) {
         rescanHandlerList.add(ev);
     }
-    
+
     public void addPort(String port) {
         _commList.addItem(port);
     }
@@ -104,8 +103,8 @@ public class PanelSerialConnection extends Panel {
     public void addConnectionEventHandler(SerialConnectionRequestEvent ev) {
         serialConnectHandlerList.add(ev);
     }
-    
-    public void addDisconnectEventHandler(DisconnectEvent ev){
+
+    public void addDisconnectEventHandler(DisconnectEvent ev) {
         serialDisconnectHandlerList.add(ev);
     }
 

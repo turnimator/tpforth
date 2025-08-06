@@ -29,23 +29,22 @@ public class CommunicationDispatcher {
 
     }
 
-    void createCommunicator(ConnectionType connectionType, String host, String port) {
+    public void createCommunicator(ConnectionType connectionType, String host, String port) {
         switch (connectionType) {
             case Serial:
                 _communicator = new SerialCommunicator(port);
-                
+
                 break;
             case Telnet:
                 _communicator = new TelnetCommunicator(host, port);
                 break;
         }
-        
-        
+
         String id = _communicator.getId();
-        Logger.getAnonymousLogger().log(Level.INFO, "_communicatorMap.add(" + id + ")");
-        
+        Logger.getAnonymousLogger().log(Level.INFO, () -> "_communicatorMap.add(" + id + ")");
+
         _communicatorMap.put(id, _communicator); // NB! Can onlyy use ID AFTER host and port are set!
-        
+
         _communicator.addReceiveEventHandler(new ReceiveEvent() {
             @Override
             public void receive(String id, String text) {
@@ -56,9 +55,9 @@ public class CommunicationDispatcher {
         });
     }
 
-    Iterable<String> getPorts(String host) {
-        if (host.equals("")){
-        return _communicator.getPorts(host);
+    public Iterable<String> getPorts(String host) {
+        if (host.equals("")) {
+            return _communicator.getPorts(host);
         } else {
             return new TelnetCommunicator(host, "").getPorts(host);
         }
@@ -69,10 +68,10 @@ public class CommunicationDispatcher {
         if (id == null) {
             throw new NullPointerException("ConnectionId can not be null!");
         }
-        
+
         _communicator = _communicatorMap.get(id);
-        
-        if (_communicator == null){
+
+        if (_communicator == null) {
             throw new NullPointerException("Communicator is null for id=" + id);
         }
         return _communicator;
@@ -90,9 +89,9 @@ public class CommunicationDispatcher {
 
     public boolean send(String id, String s) {
         //Logger.getAnonymousLogger().log(Level.INFO, "Send from " + id + ": "+text);
-        // TODO if id.getConnectionType() == ConnectionType.All loop through all entries in 
+        // TODO if id.getConnectionType() == ConnectionType.All loop through all entries in
         // _communicatorMap and send to each one (except the originator?)
-        
+
         ensureCommunicator(id);
         return _communicator.send(s);
     }

@@ -59,7 +59,7 @@ public class PanelEditor extends JPanel {
     private TextField _replTextfield;
     private JButton _closeButton;
     private JButton _clearOutputButton;
-    
+
     public PanelEditor(String id, ConnectionType t) {
         _connectionId = id;
         _connectionType = t;
@@ -126,7 +126,7 @@ public class PanelEditor extends JPanel {
                 }
             }
         });
-        
+
         _clearOutputButton = new JButton(new AbstractAction("Clear Output") {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -150,7 +150,9 @@ public class PanelEditor extends JPanel {
     }
 
     public void appendOutputText(String text) {
-        if (text == null) return;
+        if (text == null) {
+            return;
+        }
         String text1 = _editorPane.getText();
         _editorPane.setText(text1 + "\n" + text);
         _editorPane.setCaretPosition(text1.length() + text.length());
@@ -163,11 +165,11 @@ public class PanelEditor extends JPanel {
         _editorPane.setCaretPosition(text1.length() + text.length());
     }
 
-    public void clearOutputText(){
+    public void clearOutputText() {
         _editorPane.setText(_programText);
         _editorPane.setCaretPosition(_programText.length());
     }
-    
+
     public String getEditorText() {
         return _editorPane.getText();
     }
@@ -184,7 +186,7 @@ public class PanelEditor extends JPanel {
         _editorPane.setText(_editorPane.getText() + s);
     }
 
-    void deleteSelectedText() {
+    public void deleteSelectedText() {
         int selectionStart = _editorPane.getSelectionStart();
         int selectionEnd = _editorPane.getSelectionEnd();
         String s = _editorPane.getText();
@@ -277,7 +279,7 @@ public class PanelEditor extends JPanel {
         }
     }
 
-    ConnectionType getConnectionType() {
+    public ConnectionType getConnectionType() {
         return _connectionType;
     }
 

@@ -7,7 +7,6 @@ package com.turnimator.fide.model;
 
 import com.fazecast.jSerialComm.SerialPort;
 import static com.fazecast.jSerialComm.SerialPort.TIMEOUT_READ_BLOCKING;
-import com.turnimator.fide.enums.ConnectionType;
 import com.turnimator.fide.events.ProgressEvent;
 import com.turnimator.fide.events.ReceiveEvent;
 import java.io.BufferedReader;
@@ -100,8 +99,8 @@ public class SerialCommunicator implements CommunicatorInterface {
                         continue;
                     }
                     if (s != null && s.length() > 0) {
-                        
-                        Logger.getAnonymousLogger().log(Level.INFO, "RX:"+s);
+
+                        Logger.getAnonymousLogger().log(Level.INFO, "RX:" + s);
                         for (ReceiveEvent evt : recvList) {
                             evt.receive(_id, s);
                         }

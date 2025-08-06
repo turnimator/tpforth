@@ -21,11 +21,11 @@ public class PanelConnections extends JPanel {
 
     private final ArrayList<SerialConnectionRequestEvent> serialConnectHandlerList = new ArrayList<>();
     private final ArrayList<DisconnectEvent> serialDisconnectHandlerList = new ArrayList<>();
-    private ArrayList<RescanEvent> rescanHandlerList = new ArrayList<>();
+    private final ArrayList<RescanEvent> rescanHandlerList = new ArrayList<>();
 
     private final ArrayList<TelnetConnectionRequestEvent> telnetConnectionHandlerList = new ArrayList<>();
 
-    private JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+    private final JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
     private PanelSerialConnection panelSerialConnection;
     private PanelTelnetConnection panelTelnetConnection;
 
@@ -40,6 +40,7 @@ public class PanelConnections extends JPanel {
             }
         });
         tabbedPane.add("Serial", panelSerialConnection);
+        panelSerialConnection.setVisible(true); // OBS
 
         panelTelnetConnection = new PanelTelnetConnection();
         panelTelnetConnection.addConnectionEventHandler(new TelnetConnectionRequestEvent() {
@@ -91,7 +92,7 @@ public class PanelConnections extends JPanel {
         panelSerialConnection.addDisconnectEventHandler(ev);
     }
 
-    void clearPorts(String host) {
+    public void clearPorts(String host) {
         if (host.equals("")) {
             panelSerialConnection.clearPortList();
         } else {
